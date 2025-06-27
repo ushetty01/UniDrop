@@ -37,6 +37,8 @@ export const deliveries = [
         pickup: "KC Food Court",
         dropoff: "Block 5, Room 201",
         courier: couriers[1],
+        price: 50,
+        paymentMethod: "UPI",
     },
     {
         id: "del-2",
@@ -45,6 +47,8 @@ export const deliveries = [
         pickup: "Block 17, Room 404",
         dropoff: "MIT Central Library",
         courier: null,
+        price: 25,
+        paymentMethod: "Cash",
     },
     {
         id: "del-3",
@@ -53,6 +57,8 @@ export const deliveries = [
         pickup: "Student Plaza Xerox",
         dropoff: "Block 1, Room 110",
         courier: couriers[0],
+        price: 30,
+        paymentMethod: "Card",
     },
 ];
 

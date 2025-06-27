@@ -91,17 +91,22 @@ export default function DashboardPage({ searchParams }: { searchParams?: { role?
                 <div className="space-y-4">
                     {activityList.map((delivery) => (
                         <div key={delivery.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
-                            <div>
+                            <div className="flex-grow">
                                 <p className="font-medium">{delivery.item}</p>
                                 <p className="text-sm text-muted-foreground">{isCourier ? `From: ${delivery.pickup} | To: ${delivery.dropoff}` : `To: ${delivery.dropoff}`}</p>
                             </div>
-                             {isCourier ? (
-                                <Button size="sm" asChild>
-                                  <Link href={`/delivery/${delivery.id}?role=courier`}>Accept Job</Link>
-                                </Button>
-                              ) : (
-                                <Badge variant={delivery.status === 'Delivered' ? 'secondary' : 'default'} className={delivery.status === 'In Transit' ? 'bg-amber-500' : ''}>{delivery.status}</Badge>
-                              )}
+                            <div className="flex items-center gap-4">
+                                {isCourier ? (
+                                    <>
+                                        <div className="font-semibold text-primary">₹{delivery.price}</div>
+                                        <Button size="sm" asChild>
+                                        <Link href={`/delivery/${delivery.id}?role=courier`}>Accept Job</Link>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Badge variant={delivery.status === 'Delivered' ? 'secondary' : 'default'} className={delivery.status === 'In Transit' ? 'bg-amber-500' : ''}>{delivery.status}</Badge>
+                                )}
+                             </div>
                         </div>
                     ))}
                     {isCourier && activityList.length === 0 && (

@@ -6,7 +6,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Star, MapPin, QrCode, Share2, Send } from "lucide-react";
+import { Star, MapPin, QrCode, Share2, Send, Wallet, CreditCard, Landmark } from "lucide-react";
+
+const paymentIcons: Record<string, React.ReactNode> = {
+    "Cash": <Wallet className="w-4 h-4 mr-2" />,
+    "UPI": <Landmark className="w-4 h-4 mr-2" />,
+    "Card": <CreditCard className="w-4 h-4 mr-2" />,
+}
 
 export default function DeliveryStatusPage({ params }: { params: { id: string } }) {
   const delivery = deliveries.find(d => d.id === 'del-1'); // Mocking with first delivery with courier
@@ -17,6 +23,7 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
   );
   
   const { courier } = delivery;
+  const paymentIcon = delivery.paymentMethod ? paymentIcons[delivery.paymentMethod] : null;
 
   return (
     <AppLayout>
@@ -49,24 +56,44 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
                 </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Courier Details</CardTitle>
-            </CardHeader>
-             <CardContent className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={courier.avatar} alt={courier.name} data-ai-hint="profile person" />
-                  <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold text-lg">{courier.name}</h3>
-                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span>{courier.rating}</span>
+           <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                <CardTitle className="font-headline">Courier Details</CardTitle>
+                </CardHeader>
+                <CardContent className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                    <AvatarImage src={courier.avatar} alt={courier.name} data-ai-hint="profile person" />
+                    <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                    <h3 className="font-semibold text-lg">{courier.name}</h3>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                            <span>{courier.rating}</span>
+                        </div>
                     </div>
-                </div>
-              </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Payment Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Amount</span>
+                        <span className="font-semibold text-lg">₹{delivery.price}</span>
+                    </div>
+                    <div className="flex items-center justify-between mt-2">
+                         <span className="text-muted-foreground">Method</span>
+                         <div className="flex items-center font-medium">
+                            {paymentIcon}
+                            <span>{delivery.paymentMethod}</span>
+                         </div>
+                    </div>
+                </CardContent>
+            </Card>
+          </div>
         </div>
         <div className="lg:col-span-1 space-y-6">
           <Card>
