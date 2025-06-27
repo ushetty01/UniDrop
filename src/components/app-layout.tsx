@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   BriefcaseBusiness,
   LayoutDashboard,
@@ -39,6 +40,11 @@ import { Logo } from "./logo";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role');
+  const isCourier = role === 'courier';
+  const roleQuery = role ? `?role=${role}` : '';
+
 
   const handleShare = () => {
     navigator.clipboard
@@ -59,6 +65,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       });
   };
 
+  const navLinks = (
+    <>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          tooltip="Dashboard"
+        >
+          <Link href={`/dashboard${roleQuery}`}>
+            <LayoutDashboard />
+            Dashboard
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      {!isCourier && (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild tooltip="New Delivery">
+            <Link href={`/delivery/new${roleQuery}`}>
+              <PackagePlus />
+              New Delivery
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild tooltip={isCourier ? 'My Jobs' : 'My Deliveries'}>
+          <Link href={`/dashboard${roleQuery}`}>
+            <BriefcaseBusiness />
+            {isCourier ? 'My Jobs' : 'My Deliveries'}
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </>
+  );
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -69,33 +109,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip="Dashboard"
-              >
-                <Link href="/dashboard">
-                  <LayoutDashboard />
-                  Dashboard
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="New Delivery">
-                <Link href="/delivery/new">
-                  <PackagePlus />
-                  New Delivery
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="My Deliveries">
-                <Link href="/dashboard">
-                  <BriefcaseBusiness />
-                  My Deliveries
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {navLinks}
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
@@ -105,7 +119,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <AvatarFallback>S</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">Student Name</span>
+              <span className="text-sm font-medium">{isCourier ? 'Courier Name' : 'Student Name'}</span>
               <span className="text-xs text-muted-foreground">
                 student@manipal.edu
               </span>
@@ -134,30 +148,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </SidebarHeader>
               <SidebarContent className="p-2">
                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                            <Link href="/dashboard">
-                            <LayoutDashboard />
-                            Dashboard
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                            <Link href="/delivery/new">
-                            <PackagePlus />
-                            New Delivery
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                     <SidebarMenuItem>
-                        <SidebarMenuButton asChild>
-                            <Link href="/dashboard">
-                            <BriefcaseBusiness />
-                            My Deliveries
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {navLinks}
                 </SidebarMenu>
               </SidebarContent>
             </SheetContent>
@@ -184,7 +175,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href="/profile"><User className="mr-2 h-4 w-4" />Profile</Link>
+                <Link href={`/profile${roleQuery}`}><User className="mr-2 h-4 w-4" />Profile</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
