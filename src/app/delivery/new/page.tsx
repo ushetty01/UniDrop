@@ -40,17 +40,7 @@ export default function NewDeliveryPage() {
                 <Label htmlFor="description">Item Description</Label>
                 <Textarea id="description" placeholder="e.g., 1x Aloo Paratha, 1x Coke" />
               </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="recipient-name">Recipient Name</Label>
-                        <Input id="recipient-name" placeholder="e.g., Jane Doe" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="recipient-phone">Recipient Phone</Label>
-                        <Input id="recipient-phone" type="tel" placeholder="e.g., +91 12345 67890" />
-                    </div>
-                </div>
-                 <div className="space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="package-size">Package Size</Label>
                 <Select>
                   <SelectTrigger id="package-size">
