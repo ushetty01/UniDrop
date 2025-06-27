@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for generating a static map image.
@@ -10,13 +11,13 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-export const GenerateMapInputSchema = z.object({
+const GenerateMapInputSchema = z.object({
   pickup: z.string().describe('The starting location for the route.'),
   dropoff: z.string().describe('The destination location for the route.'),
 });
 export type GenerateMapInput = z.infer<typeof GenerateMapInputSchema>;
 
-export const GenerateMapOutputSchema = z.object({
+const GenerateMapOutputSchema = z.object({
   mapDataUri: z
     .string()
     .describe(
