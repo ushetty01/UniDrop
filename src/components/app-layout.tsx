@@ -7,6 +7,7 @@ import {
   LogOut,
   PackagePlus,
   PanelLeft,
+  Share2,
   User,
 } from "lucide-react";
 
@@ -33,9 +34,31 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 import { Logo } from "./logo";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { toast } = useToast();
+
+  const handleShare = () => {
+    navigator.clipboard
+      .writeText(window.location.origin)
+      .then(() => {
+        toast({
+          title: "Link Copied!",
+          description: "A shareable link has been copied to your clipboard.",
+        });
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "There was a problem copying the link.",
+        });
+      });
+  };
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -143,6 +166,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="w-full flex-1">
             {/* Can add a search bar here if needed */}
           </div>
+          <Button variant="outline" onClick={handleShare}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share App
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
