@@ -99,7 +99,7 @@ export default function SignupForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="e.g., name.surname@manipal.edu"
+                      placeholder="your.email@manipal.edu"
                       {...field}
                     />
                   </FormControl>
