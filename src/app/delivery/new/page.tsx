@@ -11,10 +11,21 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { MapPin, Wallet, CreditCard, Landmark } from "lucide-react";
+import { MapPin, Wallet, CreditCard, Landmark, Map } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useDeliveries } from '@/context/delivery-context';
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+const mockLocations = [
+    "KC Food Court",
+    "MIT Central Library",
+    "Block 5, Room 201",
+    "Block 17, Room 404",
+    "Student Plaza",
+    "Night Canteen",
+    "Campus Store"
+];
 
 export default function NewDeliveryPage() {
   const router = useRouter();
@@ -28,6 +39,7 @@ export default function NewDeliveryPage() {
   const [packageSize, setPackageSize] = useState('');
   const [price, setPrice] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [editingLocation, setEditingLocation] = useState<'pickup' | 'dropoff' | null>(null);
 
   const role = searchParams.get('role');
   const dashboardLink = `/dashboard${role ? `?role=${role}` : ''}`;
@@ -57,6 +69,15 @@ export default function NewDeliveryPage() {
 
     router.push(dashboardLink);
   };
+  
+  const handleSelectLocation = (location: string) => {
+    if (editingLocation === 'pickup') {
+      setPickup(location);
+    } else if (editingLocation === 'dropoff') {
+      setDropoff(location);
+    }
+    setEditingLocation(null);
+  };
 
   return (
     <AppLayout>
@@ -71,28 +92,40 @@ export default function NewDeliveryPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                       <Label htmlFor="pickup">Pickup Location</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          id="pickup" 
-                          placeholder="e.g., KC Food Court" 
-                          className="pl-10"
-                          value={pickup}
-                          onChange={(e) => setPickup(e.target.value)}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-grow">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="pickup" 
+                            placeholder="e.g., KC Food Court" 
+                            className="pl-10"
+                            value={pickup}
+                            onChange={(e) => setPickup(e.target.value)}
+                          />
+                        </div>
+                        <Button variant="outline" size="icon" onClick={() => setEditingLocation('pickup')}>
+                          <Map className="h-4 w-4" />
+                          <span className="sr-only">Select on map</span>
+                        </Button>
                       </div>
                   </div>
                    <div className="space-y-2">
                       <Label htmlFor="dropoff">Drop-off Location</Label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          id="dropoff" 
-                          placeholder="e.g., Block 5, Room 201" 
-                          className="pl-10"
-                          value={dropoff}
-                          onChange={(e) => setDropoff(e.target.value)}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-grow">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                            id="dropoff" 
+                            placeholder="e.g., Block 5, Room 201" 
+                            className="pl-10"
+                            value={dropoff}
+                            onChange={(e) => setDropoff(e.target.value)}
+                          />
+                        </div>
+                         <Button variant="outline" size="icon" onClick={() => setEditingLocation('dropoff')}>
+                          <Map className="h-4 w-4" />
+                          <span className="sr-only">Select on map</span>
+                        </Button>
                       </div>
                   </div>
               </div>
@@ -173,11 +206,11 @@ export default function NewDeliveryPage() {
                     <div className="aspect-video w-full rounded-md overflow-hidden bg-muted relative">
                         <Image src="https://placehold.co/600x400.png" width={600} height={400} alt={pickup && dropoff ? `Route from ${pickup} to ${dropoff}` : "Map preview"} data-ai-hint="map city" className="object-cover w-full h-full" />
                         {pickup && dropoff && (
-                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center text-foreground p-4">
+                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center text-primary-foreground p-4">
                             <MapPin className="w-8 h-8 mb-2 text-primary" />
                             <h3 className="font-semibold text-lg">Route Planned</h3>
-                            <p className="text-sm text-muted-foreground">From: <span className="font-medium text-foreground">{pickup}</span></p>
-                            <p className="text-sm text-muted-foreground">To: <span className="font-medium text-foreground">{dropoff}</span></p>
+                            <p className="text-sm text-muted-foreground">From: <span className="font-medium text-primary-foreground">{pickup}</span></p>
+                            <p className="text-sm text-muted-foreground">To: <span className="font-medium text-primary-foreground">{dropoff}</span></p>
                           </div>
                         )}
                     </div>
@@ -185,6 +218,32 @@ export default function NewDeliveryPage() {
              </Card>
         </div>
       </div>
+      <Dialog open={!!editingLocation} onOpenChange={(isOpen) => !isOpen && setEditingLocation(null)}>
+        <DialogContent className="sm:max-w-[625px]">
+          <DialogHeader>
+            <DialogTitle>Select {editingLocation === 'pickup' ? 'Pickup' : 'Drop-off'} Location</DialogTitle>
+            <DialogDescription>
+              Click a location from the list below to select it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+              <div className="relative aspect-square w-full rounded-md overflow-hidden bg-muted">
+                  <Image src="https://placehold.co/400x400.png" alt="Map of campus" fill style={{objectFit: 'cover'}} data-ai-hint="map campus"/>
+              </div>
+              <div className="space-y-2">
+                  <h4 className="font-medium">Popular Locations</h4>
+                  <div className="flex flex-col gap-2">
+                      {mockLocations.map(loc => (
+                          <Button key={loc} variant="ghost" className="justify-start" onClick={() => handleSelectLocation(loc)}>
+                              <MapPin className="mr-2 h-4 w-4" />
+                              {loc}
+                          </Button>
+                      ))}
+                  </div>
+              </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
