@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ export default function MyJobsPage() {
   const { deliveries } = useDeliveries();
 
   const activeJobs = deliveries.filter(
-    (d) => d.status === "In Transit" && d.courier
+    (d) => d.status === "In Transit" && d.courier?.id === 'courier-user'
   );
 
   return (
