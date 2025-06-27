@@ -15,7 +15,7 @@ const GenerateMapInputSchema = z.object({
   pickup: z.string().describe('The starting location for the route.'),
   dropoff: z.string().describe('The destination location for the route.'),
 });
-export type GenerateMapInput = z.infer<typeof GenerateMapInputSchema>;
+type GenerateMapInput = z.infer<typeof GenerateMapInputSchema>;
 
 const GenerateMapOutputSchema = z.object({
   mapDataUri: z
@@ -24,7 +24,7 @@ const GenerateMapOutputSchema = z.object({
       "A map image showing the route, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
-export type GenerateMapOutput = z.infer<typeof GenerateMapOutputSchema>;
+type GenerateMapOutput = z.infer<typeof GenerateMapOutputSchema>;
 
 export async function generateMapImage(
   input: GenerateMapInput
