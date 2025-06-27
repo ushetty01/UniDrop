@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -66,8 +67,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       });
   };
 
-  const myDeliveriesLink = isCourier ? `/my-jobs${roleQuery}` : `/dashboard${roleQuery}`;
-
   const navLinks = (
     <>
       <SidebarMenuItem>
@@ -81,30 +80,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
-      {!isCourier && (
+      {isCourier ? (
+        <>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="My Jobs">
+              <Link href={`/my-jobs${roleQuery}`}>
+                <BriefcaseBusiness />
+                My Jobs
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Earnings History">
+              <Link href={`/earnings${roleQuery}`}>
+                <History />
+                My Earnings
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </>
+      ) : (
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip="New Delivery">
             <Link href={`/delivery/new${roleQuery}`}>
               <PackagePlus />
               New Delivery
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      )}
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip={isCourier ? 'My Jobs' : 'My Deliveries'}>
-          <Link href={myDeliveriesLink}>
-            <BriefcaseBusiness />
-            {isCourier ? 'My Jobs' : 'My Deliveries'}
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      {isCourier && (
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Earnings History">
-            <Link href={`/earnings${roleQuery}`}>
-              <History />
-              My Earnings
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
