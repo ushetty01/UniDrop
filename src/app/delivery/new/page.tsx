@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,10 @@ export default function NewDeliveryPage() {
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role');
+
+  const dashboardLink = `/dashboard${role ? `?role=${role}` : ''}`;
 
   return (
     <AppLayout>
@@ -25,7 +30,7 @@ export default function NewDeliveryPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-headline text-2xl">New Delivery Request</CardTitle>
-              <CardDescription>Fill in the details below to find a courier.</CardDescription>
+              <CardDescription>Fill in the details below. Your request will be sent to all available couriers.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,7 +112,7 @@ export default function NewDeliveryPage() {
               </div>
               <div>
                 <Button asChild className="w-full">
-                    <Link href="/delivery/del-123/couriers">Find Couriers</Link>
+                    <Link href={dashboardLink}>Submit Delivery Request</Link>
                 </Button>
               </div>
             </CardContent>
