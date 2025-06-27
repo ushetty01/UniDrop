@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +24,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   fullName: z.string().min(1, { message: "Full name is required." }),
@@ -45,7 +42,6 @@ const formSchema = z.object({
 
 export default function SignupForm() {
   const router = useRouter();
-  const { toast } = useToast();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,20 +54,7 @@ export default function SignupForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
-      toast({
-        title: "Account Created",
-        description: "Redirecting to your dashboard...",
-      });
-      router.push("/dashboard");
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Signup Failed",
-        description: error.message,
-      });
-    }
+    router.push("/role-selection");
   }
 
   return (
