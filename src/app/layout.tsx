@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ManipalRun",
+  title: "UniDrop",
   description: "Campus delivery made easy.",
 };
 

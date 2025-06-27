@@ -10,7 +10,7 @@ export function Logo(props: HTMLAttributes<HTMLDivElement>) {
         props.className
       )}
     >
-      ManipalRun
+      UniDrop
     </div>
   );
 }
