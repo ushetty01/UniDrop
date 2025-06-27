@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
@@ -16,6 +16,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useDeliveries } from '@/context/delivery-context';
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { generateMapImage } from '@/ai/flows/generate-map-flow';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const mockLocations = [
     "KC Food Court",
@@ -41,8 +43,39 @@ export default function NewDeliveryPage() {
   const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [editingLocation, setEditingLocation] = useState<'pickup' | 'dropoff' | null>(null);
 
+  const [mapImageUrl, setMapImageUrl] = useState("https://placehold.co/600x400.png");
+  const [isMapLoading, setIsMapLoading] = useState(false);
+
   const role = searchParams.get('role');
   const dashboardLink = `/dashboard${role ? `?role=${role}` : ''}`;
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (pickup && dropoff) {
+        setIsMapLoading(true);
+        generateMapImage({ pickup, dropoff })
+          .then(result => {
+            setMapImageUrl(result.mapDataUri);
+          })
+          .catch(error => {
+            console.error("Failed to generate map:", error);
+            setMapImageUrl("https://placehold.co/600x400.png");
+            toast({
+              variant: "destructive",
+              title: "Map Generation Failed",
+              description: "Could not generate a route preview.",
+            });
+          })
+          .finally(() => {
+            setIsMapLoading(false);
+          });
+      }
+    }, 1000); // 1-second debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [pickup, dropoff, toast]);
 
   const handleSubmit = () => {
     if (!pickup || !dropoff || !description || !price || !paymentMethod) {
@@ -204,8 +237,20 @@ export default function NewDeliveryPage() {
                  </CardHeader>
                  <CardContent>
                     <div className="aspect-video w-full rounded-md overflow-hidden bg-muted relative">
-                        <Image src="https://placehold.co/600x400.png" width={600} height={400} alt={pickup && dropoff ? `Route from ${pickup} to ${dropoff}` : "Map preview"} data-ai-hint="map city" className="object-cover w-full h-full" />
-                        {pickup && dropoff && (
+                        {isMapLoading ? (
+                            <Skeleton className="w-full h-full" />
+                        ) : (
+                          <Image
+                            src={mapImageUrl}
+                            width={600}
+                            height={400}
+                            alt={pickup && dropoff ? `Route from ${pickup} to ${dropoff}` : "Map preview"}
+                            data-ai-hint="map city"
+                            className="object-cover w-full h-full"
+                            unoptimized
+                          />
+                        )}
+                        {pickup && dropoff && !isMapLoading && (
                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center text-primary-foreground p-4">
                             <MapPin className="w-8 h-8 mb-2 text-primary" />
                             <h3 className="font-semibold text-lg">Route Planned</h3>
