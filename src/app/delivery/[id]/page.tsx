@@ -192,12 +192,12 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
                   <AvatarFallback>{chatRecipient.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <p className="p-3 rounded-lg bg-muted text-sm max-w-xs">
-                  Hey! I'm on my way to the pickup location now.
+                  {isCourier ? "Sounds good, thanks for the update!" : "Hey! I'm on my way to the pickup location now."}
                 </p>
               </div>
               <div className="flex items-end gap-2 justify-end">
                  <p className="p-3 rounded-lg bg-primary text-primary-foreground text-sm max-w-xs">
-                  Sounds good, thanks for the update!
+                  {isCourier ? "Hey! I'm on my way to the pickup location now." : "Sounds good, thanks for the update!"}
                 </p>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={chatPerson.avatar} alt={chatPerson.name} />
@@ -219,5 +219,3 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
     </AppLayout>
   );
 }
-
-    
