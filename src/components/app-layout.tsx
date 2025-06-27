@@ -66,6 +66,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       });
   };
 
+  const myDeliveriesLink = isCourier ? `/my-jobs${roleQuery}` : `/dashboard${roleQuery}`;
+
   const navLinks = (
     <>
       <SidebarMenuItem>
@@ -91,7 +93,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
       <SidebarMenuItem>
         <SidebarMenuButton asChild tooltip={isCourier ? 'My Jobs' : 'My Deliveries'}>
-          <Link href={`/dashboard${roleQuery}`}>
+          <Link href={myDeliveriesLink}>
             <BriefcaseBusiness />
             {isCourier ? 'My Jobs' : 'My Deliveries'}
           </Link>
