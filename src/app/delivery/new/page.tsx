@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import AppLayout from "@/components/app-layout";
@@ -10,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 
 export default function NewDeliveryPage() {
+  const [pickup, setPickup] = useState('');
+  const [dropoff, setDropoff] = useState('');
+
   return (
     <AppLayout>
       <div className="grid gap-6 lg:grid-cols-5">
@@ -25,14 +31,26 @@ export default function NewDeliveryPage() {
                       <Label htmlFor="pickup">Pickup Location</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="pickup" placeholder="e.g., KC Food Court" className="pl-10" />
+                        <Input 
+                          id="pickup" 
+                          placeholder="e.g., KC Food Court" 
+                          className="pl-10"
+                          value={pickup}
+                          onChange={(e) => setPickup(e.target.value)}
+                        />
                       </div>
                   </div>
                    <div className="space-y-2">
                       <Label htmlFor="dropoff">Drop-off Location</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="dropoff" placeholder="e.g., Block 5, Room 201" className="pl-10" />
+                        <Input 
+                          id="dropoff" 
+                          placeholder="e.g., Block 5, Room 201" 
+                          className="pl-10"
+                          value={dropoff}
+                          onChange={(e) => setDropoff(e.target.value)}
+                        />
                       </div>
                   </div>
               </div>
@@ -67,8 +85,16 @@ export default function NewDeliveryPage() {
                     <CardTitle className="font-headline">Map Preview</CardTitle>
                  </CardHeader>
                  <CardContent>
-                    <div className="aspect-video w-full rounded-md overflow-hidden bg-muted">
-                        <Image src="https://placehold.co/600x400.png" width={600} height={400} alt="Map preview" data-ai-hint="map route"/>
+                    <div className="aspect-video w-full rounded-md overflow-hidden bg-muted relative">
+                        <Image src="https://placehold.co/600x400.png" width={600} height={400} alt={pickup && dropoff ? `Route from ${pickup} to ${dropoff}` : "Map preview"} data-ai-hint="map city" className="object-cover w-full h-full" />
+                        {pickup && dropoff && (
+                           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-center text-foreground p-4">
+                            <MapPin className="w-8 h-8 mb-2 text-primary" />
+                            <h3 className="font-semibold text-lg">Route Planned</h3>
+                            <p className="text-sm text-muted-foreground">From: <span className="font-medium text-foreground">{pickup}</span></p>
+                            <p className="text-sm text-muted-foreground">To: <span className="font-medium text-foreground">{dropoff}</span></p>
+                          </div>
+                        )}
                     </div>
                  </CardContent>
              </Card>
