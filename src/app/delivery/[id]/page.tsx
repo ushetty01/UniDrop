@@ -3,8 +3,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { deliveries, userProfile } from "@/lib/data";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { userProfile } from "@/lib/data";
+import { useDeliveries } from "@/context/delivery-context";
 import AppLayout from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -23,10 +24,13 @@ const paymentIcons: Record<string, React.ReactNode> = {
     "Card": <CreditCard className="w-4 h-4 mr-2" />,
 }
 
-export default function DeliveryStatusPage({ params }: { params: { id: string } }) {
+export default function DeliveryStatusPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const params = useParams();
+  const { id } = params as { id: string };
   const { toast } = useToast();
+  const { deliveries, completeDelivery } = useDeliveries();
   
   const role = searchParams.get('role') || 'customer';
   const isCourier = role === 'courier';
@@ -62,26 +66,35 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
     }
   }, [isCourier]);
   
-  const delivery = deliveries.find(d => d.id === 'del-1'); // Mocking with first delivery with courier
+  const delivery = deliveries.find(d => d.id === id);
 
-  if (!delivery || !delivery.courier) {
+  if (!delivery) {
     return (
       <AppLayout>
-        <p>Delivery not found or no courier assigned.</p>
+        <p>Delivery not found.</p>
       </AppLayout>
     );
   }
   
   const { courier } = delivery;
+
+  if (!courier && role !== 'customer') {
+      return (
+      <AppLayout>
+        <p>Delivery not found or no courier assigned.</p>
+      </AppLayout>
+    );
+  }
+
   const paymentIcon = delivery.paymentMethod ? paymentIcons[delivery.paymentMethod] : null;
 
   const handleVerificationSubmit = () => {
     if (verificationCode === '123456') { // Mock verification code check
+      completeDelivery(delivery.id);
       toast({
         title: "Delivery Completed!",
         description: "The verification code is correct.",
       });
-      // In a real app, you would update the delivery status here
       router.push(`/dashboard?role=courier`);
     } else {
       toast({
@@ -115,7 +128,7 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
                     <Separator className="w-1/4" />
                      <div className="flex items-center gap-2 text-sm font-semibold">
                         <div className="w-3 h-3 rounded-full bg-primary animate-pulse"></div>
-                        <span>In Transit</span>
+                        <span>{delivery.status}</span>
                     </div>
                     <Separator className="w-1/4" />
                      <div className="flex items-center gap-2 text-sm">
@@ -125,53 +138,55 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
                 </div>
             </CardContent>
           </Card>
-           <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                <CardTitle className="font-headline">{isCourier ? 'Customer Details' : 'Courier Details'}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} data-ai-hint="profile person" />
-                      <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-lg">{detailsPerson.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            {isCourier ? (
-                                <>
-                                    <User className="w-4 h-4" />
-                                    <span>Customer</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                    <span>{detailsPerson.rating}</span>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline">Payment Details</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Amount</span>
-                        <span className="font-semibold text-lg">₹{delivery.price}</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                         <span className="text-muted-foreground">Method</span>
-                         <div className="flex items-center font-medium">
-                            {paymentIcon}
-                            <span>{delivery.paymentMethod}</span>
-                         </div>
-                    </div>
-                </CardContent>
-            </Card>
-          </div>
+           {detailsPerson && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                  <CardHeader>
+                  <CardTitle className="font-headline">{isCourier ? 'Customer Details' : 'Courier Details'}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex items-center gap-4">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} data-ai-hint="profile person" />
+                        <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-semibold text-lg">{detailsPerson.name}</h3>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              {isCourier ? (
+                                  <>
+                                      <User className="w-4 h-4" />
+                                      <span>Customer</span>
+                                  </>
+                              ) : (
+                                  <>
+                                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                      <span>{detailsPerson.rating}</span>
+                                  </>
+                              )}
+                          </div>
+                      </div>
+                  </CardContent>
+              </Card>
+              <Card>
+                  <CardHeader>
+                      <CardTitle className="font-headline">Payment Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Amount</span>
+                          <span className="font-semibold text-lg">₹{delivery.price}</span>
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                          <span className="text-muted-foreground">Method</span>
+                          <div className="flex items-center font-medium">
+                              {paymentIcon}
+                              <span>{delivery.paymentMethod}</span>
+                          </div>
+                      </div>
+                  </CardContent>
+              </Card>
+            </div>
+           )}
         </div>
         <div className="lg:col-span-1 space-y-6">
           <Card>
@@ -236,58 +251,60 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
                 )}
             </CardFooter>
           </Card>
-           <Card className="flex flex-col h-[420px]">
-            <CardHeader>
-              <CardTitle className="font-headline">Chat</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-grow overflow-y-auto space-y-4">
-              {/* Message 1: from Courier */}
-              <div className={`flex items-end gap-2 ${isCourier ? 'justify-end' : ''}`}>
-                {!isCourier && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={courier.avatar} alt={courier.name} />
-                    <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                )}
-                <p className={`p-3 rounded-lg text-sm max-w-xs ${isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                  Hey! I'm on my way to the pickup location now.
-                </p>
-                {isCourier && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={courier.avatar} alt={courier.name} />
-                    <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-              
-              {/* Message 2: from Customer */}
-              <div className={`flex items-end gap-2 ${!isCourier ? 'justify-end' : ''}`}>
-                {isCourier && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                    <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                )}
-                <p className={`p-3 rounded-lg text-sm max-w-xs ${!isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                  Sounds good, thanks for the update!
-                </p>
-                {!isCourier && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                    <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter className="pt-4 border-t">
-              <div className="relative w-full">
-                <Textarea placeholder="Type your message..." className="pr-12" />
-                <Button size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8">
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardFooter>
-          </Card>
+           {detailsPerson && (
+            <Card className="flex flex-col h-[420px]">
+              <CardHeader>
+                <CardTitle className="font-headline">Chat</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-grow overflow-y-auto space-y-4">
+                {/* Message 1: from Courier */}
+                <div className={`flex items-end gap-2 ${isCourier ? 'justify-end' : ''}`}>
+                  {!isCourier && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} />
+                      <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <p className={`p-3 rounded-lg text-sm max-w-xs ${isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    Hey! I'm on my way to the pickup location now.
+                  </p>
+                  {isCourier && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} />
+                      <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+                
+                {/* Message 2: from Customer */}
+                <div className={`flex items-end gap-2 ${!isCourier ? 'justify-end' : ''}`}>
+                  {isCourier && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+                      <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                  <p className={`p-3 rounded-lg text-sm max-w-xs ${!isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    Sounds good, thanks for the update!
+                  </p>
+                  {!isCourier && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+                      <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="pt-4 border-t">
+                <div className="relative w-full">
+                  <Textarea placeholder="Type your message..." className="pr-12" />
+                  <Button size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+           )}
         </div>
       </div>
     </AppLayout>

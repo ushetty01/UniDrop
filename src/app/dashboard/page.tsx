@@ -1,4 +1,8 @@
+
+'use client';
+
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import AppLayout from "@/components/app-layout";
 import {
   Card,
@@ -9,18 +13,22 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Activity, CheckCircle, PackagePlus, PackageSearch } from "lucide-react";
-import { deliveries } from "@/lib/data";
+import { useDeliveries } from "@/context/delivery-context";
 import { Badge } from "@/components/ui/badge";
 
-export default function DashboardPage({ searchParams }: { searchParams?: { role?: string } }) {
-  const role = searchParams?.role || 'customer';
+export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { deliveries, acceptJob } = useDeliveries();
+
+  const role = searchParams.get('role') || 'customer';
   const isCourier = role === 'courier';
 
   let activeList, completedList, activityList;
 
   if (isCourier) {
-    activeList = deliveries.filter(d => d.status === 'In Transit');
-    completedList = deliveries.filter(d => d.status === 'Delivered');
+    activeList = deliveries.filter(d => d.status === 'In Transit' && d.courier);
+    completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier);
     activityList = deliveries.filter(d => d.status === 'Pending Pickup');
   } else {
     // For customers, show all their deliveries
@@ -28,6 +36,11 @@ export default function DashboardPage({ searchParams }: { searchParams?: { role?
     completedList = deliveries.filter(d => d.status === 'Delivered');
     activityList = deliveries;
   }
+
+  const handleAcceptJob = (deliveryId: string) => {
+    acceptJob(deliveryId);
+    router.push(`/delivery/${deliveryId}?role=courier`);
+  };
 
   return (
     <AppLayout>
@@ -71,7 +84,7 @@ export default function DashboardPage({ searchParams }: { searchParams?: { role?
            {!isCourier && (
             <Card className="col-span-full lg:col-span-1 bg-primary text-primary-foreground flex flex-col justify-center">
               <CardContent className="pt-6">
-                  <Link href="/delivery/new">
+                  <Link href="/delivery/new?role=customer">
                       <Button variant="secondary" className="w-full">
                           <PackagePlus className="mr-2 h-4 w-4" />
                           Create New Delivery
@@ -99,8 +112,8 @@ export default function DashboardPage({ searchParams }: { searchParams?: { role?
                                 {isCourier ? (
                                     <>
                                         <div className="font-semibold text-primary">₹{delivery.price}</div>
-                                        <Button size="sm" asChild>
-                                        <Link href={`/delivery/${delivery.id}?role=courier`}>Accept Job</Link>
+                                        <Button size="sm" onClick={() => handleAcceptJob(delivery.id)}>
+                                            Accept Job
                                         </Button>
                                     </>
                                 ) : (
@@ -109,10 +122,10 @@ export default function DashboardPage({ searchParams }: { searchParams?: { role?
                              </div>
                         </div>
                     ))}
-                    {isCourier && activityList.length === 0 && (
+                    {(activityList.length === 0) && (
                         <div className="text-center text-muted-foreground py-8">
                             <PackageSearch className="mx-auto h-12 w-12" />
-                            <p className="mt-4">No available jobs at the moment. Check back later!</p>
+                            <p className="mt-4">{isCourier ? "No available jobs at the moment. Check back later!" : "No deliveries yet. Create one to get started!"}</p>
                         </div>
                     )}
                 </div>

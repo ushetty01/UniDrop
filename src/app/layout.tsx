@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
+import { DeliveryProvider } from "@/context/delivery-context";
 
 export const metadata: Metadata = {
   title: "UniDrop",
@@ -27,7 +28,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <DeliveryProvider>
+          {children}
+        </DeliveryProvider>
         <Toaster />
       </body>
     </html>

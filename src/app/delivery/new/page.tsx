@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useState } from 'react';
 import Image from "next/image";
-import Link from "next/link";
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from "@/components/app-layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,15 +13,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { MapPin, Wallet, CreditCard, Landmark } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useDeliveries } from '@/context/delivery-context';
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewDeliveryPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addDelivery } = useDeliveries();
+  const { toast } = useToast();
+
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('cod');
-  const searchParams = useSearchParams();
-  const role = searchParams.get('role');
+  const [description, setDescription] = useState('');
+  const [packageSize, setPackageSize] = useState('');
+  const [price, setPrice] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
 
+  const role = searchParams.get('role');
   const dashboardLink = `/dashboard${role ? `?role=${role}` : ''}`;
+
+  const handleSubmit = () => {
+    if (!pickup || !dropoff || !description || !price || !paymentMethod) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please fill out all the required fields.",
+        });
+        return;
+    }
+
+    addDelivery({
+        item: description,
+        pickup,
+        dropoff,
+        price: Number(price),
+        paymentMethod,
+    });
+    
+    toast({
+        title: "Delivery Request Submitted!",
+        description: "Your request has been sent to available couriers.",
+    });
+
+    router.push(dashboardLink);
+  };
 
   return (
     <AppLayout>
@@ -63,12 +98,17 @@ export default function NewDeliveryPage() {
               </div>
                <div className="space-y-2">
                 <Label htmlFor="description">Item Description</Label>
-                <Textarea id="description" placeholder="e.g., 1x Aloo Paratha, 1x Coke" />
+                <Textarea 
+                  id="description" 
+                  placeholder="e.g., 1x Aloo Paratha, 1x Coke" 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="package-size">Package Size</Label>
-                  <Select>
+                  <Select onValueChange={setPackageSize} value={packageSize}>
                     <SelectTrigger id="package-size">
                       <SelectValue placeholder="Select a size" />
                     </SelectTrigger>
@@ -81,28 +121,34 @@ export default function NewDeliveryPage() {
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="price">Delivery Fee</Label>
-                    <Input id="price" type="number" placeholder="e.g., 50" />
+                    <Input 
+                      id="price" 
+                      type="number" 
+                      placeholder="e.g., 50"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)} 
+                    />
                  </div>
               </div>
                <div className="space-y-2">
                   <Label>Payment Method</Label>
-                   <RadioGroup defaultValue="cod" className="grid grid-cols-3 gap-4">
+                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-3 gap-4">
                       <div>
-                        <RadioGroupItem value="cod" id="cod" className="peer sr-only" />
+                        <RadioGroupItem value="Cash" id="cod" className="peer sr-only" />
                         <Label htmlFor="cod" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                           <Wallet className="mb-3 h-6 w-6" />
                           Cash
                         </Label>
                       </div>
                       <div>
-                        <RadioGroupItem value="upi" id="upi" className="peer sr-only" />
+                        <RadioGroupItem value="UPI" id="upi" className="peer sr-only" />
                         <Label htmlFor="upi" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                            <Landmark className="mb-3 h-6 w-6" />
                           UPI
                         </Label>
                       </div>
                        <div>
-                        <RadioGroupItem value="card" id="card" className="peer sr-only" />
+                        <RadioGroupItem value="Card" id="card" className="peer sr-only" />
                         <Label htmlFor="card" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                           <CreditCard className="mb-3 h-6 w-6" />
                           Card
@@ -111,8 +157,8 @@ export default function NewDeliveryPage() {
                   </RadioGroup>
               </div>
               <div>
-                <Button asChild className="w-full">
-                    <Link href={dashboardLink}>Submit Delivery Request</Link>
+                <Button onClick={handleSubmit} className="w-full">
+                    Submit Delivery Request
                 </Button>
               </div>
             </CardContent>

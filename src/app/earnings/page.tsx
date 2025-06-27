@@ -1,3 +1,6 @@
+
+'use client';
+
 import AppLayout from "@/components/app-layout";
 import {
   Card,
@@ -14,11 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { deliveries } from "@/lib/data";
+import { useDeliveries } from "@/context/delivery-context";
 import { DollarSign, Package } from "lucide-react";
 import { format } from "date-fns";
 
 export default function EarningsPage() {
+  const { deliveries } = useDeliveries();
+
   const completedDeliveries = deliveries.filter(
     (d) => d.status === "Delivered" && d.courier
   );
@@ -44,7 +49,7 @@ export default function EarningsPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalEarnings}</div>
+              <div className="text-2xl font-bold">₹{totalEarnings.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
                 Total earnings from all completed jobs.
               </p>
@@ -96,7 +101,7 @@ export default function EarningsPage() {
                       <TableCell>{delivery.pickup}</TableCell>
                       <TableCell>{delivery.dropoff}</TableCell>
                       <TableCell className="text-right font-semibold">
-                        ₹{delivery.price}
+                        ₹{delivery.price.toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))
