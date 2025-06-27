@@ -62,8 +62,6 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
   };
 
   const detailsPerson = isCourier ? userProfile : courier;
-  const chatPerson = isCourier ? courier : userProfile;
-  const chatRecipient = isCourier ? userProfile : courier;
 
   return (
     <AppLayout>
@@ -186,23 +184,42 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
               <CardTitle className="font-headline">Chat</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow overflow-y-auto space-y-4">
-              <div className="flex items-end gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={chatRecipient.avatar} alt={chatRecipient.name} />
-                  <AvatarFallback>{chatRecipient.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <p className="p-3 rounded-lg bg-muted text-sm max-w-xs">
-                  {isCourier ? "Sounds good, thanks for the update!" : "Hey! I'm on my way to the pickup location now."}
+              {/* Message 1: from Courier */}
+              <div className={`flex items-end gap-2 ${isCourier ? 'justify-end' : ''}`}>
+                {!isCourier && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={courier.avatar} alt={courier.name} />
+                    <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                )}
+                <p className={`p-3 rounded-lg text-sm max-w-xs ${isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  Hey! I'm on my way to the pickup location now.
                 </p>
+                {isCourier && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={courier.avatar} alt={courier.name} />
+                    <AvatarFallback>{courier.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                )}
               </div>
-              <div className="flex items-end gap-2 justify-end">
-                 <p className="p-3 rounded-lg bg-primary text-primary-foreground text-sm max-w-xs">
-                  {isCourier ? "Hey! I'm on my way to the pickup location now." : "Sounds good, thanks for the update!"}
+              
+              {/* Message 2: from Customer */}
+              <div className={`flex items-end gap-2 ${!isCourier ? 'justify-end' : ''}`}>
+                {isCourier && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+                    <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                )}
+                <p className={`p-3 rounded-lg text-sm max-w-xs ${!isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  Sounds good, thanks for the update!
                 </p>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={chatPerson.avatar} alt={chatPerson.name} />
-                  <AvatarFallback>{chatPerson.name.charAt(0)}</AvatarFallback>
-                </Avatar>
+                {!isCourier && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+                    <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                )}
               </div>
             </CardContent>
             <CardFooter className="pt-4 border-t">
