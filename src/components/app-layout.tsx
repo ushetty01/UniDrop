@@ -41,8 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-            <Logo className="size-8" />
-            <span className="font-headline text-lg font-semibold">ManipalRun</span>
+            <Logo className="text-lg font-semibold text-sidebar-foreground" />
           </div>
         </SidebarHeader>
         <SidebarContent>
@@ -107,8 +106,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <SheetContent side="left" className="flex flex-col p-0">
               <SidebarHeader>
                  <div className="flex items-center gap-2 p-4">
-                    <Logo className="size-8" />
-                    <span className="font-headline text-lg font-semibold">ManipalRun</span>
+                    <Logo className="text-lg font-semibold text-sidebar-foreground" />
                 </div>
               </SidebarHeader>
               <SidebarContent className="p-2">
