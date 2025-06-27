@@ -31,8 +31,8 @@ const formSchema = z.object({
     .string()
     .email({ message: "Please enter a valid email." })
     .refine(
-      (email) => email.endsWith(".edu"),
-      "Please use your college email."
+      (email) => email.endsWith("@manipal.edu"),
+      "Please use your @manipal.edu college email."
     ),
   campusId: z.string().min(1, { message: "Campus ID is required." }),
   password: z
@@ -53,7 +53,7 @@ export default function SignupForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof formSchema>) {
     router.push("/role-selection");
   }
 
@@ -90,7 +90,7 @@ export default function SignupForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="your.email@manipal.edu"
+                      placeholder="@manipal.edu"
                       {...field}
                     />
                   </FormControl>

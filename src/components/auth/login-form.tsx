@@ -65,7 +65,7 @@ export default function LoginForm() {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="your.email@manipal.edu"
+                      placeholder="@manipal.edu"
                       {...field}
                     />
                   </FormControl>
