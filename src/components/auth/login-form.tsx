@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -43,15 +45,21 @@ export default function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Mock login logic
-    console.log(values);
-    toast({
-      title: "Login Successful",
-      description: "Redirecting to your dashboard...",
-    });
-    // In a real app, you'd handle Firebase auth here.
-    router.push("/dashboard");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Login Successful",
+        description: "Redirecting to your dashboard...",
+      });
+      router.push("/dashboard");
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: error.message,
+      });
+    }
   }
 
   return (

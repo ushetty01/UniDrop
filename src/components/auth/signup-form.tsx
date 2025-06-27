@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -55,15 +57,21 @@ export default function SignupForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Mock signup logic
-    console.log(values);
-     toast({
-      title: "Account Created",
-      description: "Redirecting to your dashboard...",
-    });
-    // In a real app, you'd handle Firebase auth here.
-    router.push("/dashboard");
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      toast({
+        title: "Account Created",
+        description: "Redirecting to your dashboard...",
+      });
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Signup Failed",
+        description: error.message,
+      });
+    }
   }
 
   return (
