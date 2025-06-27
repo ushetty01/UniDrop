@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   BriefcaseBusiness,
+  History,
   LayoutDashboard,
   LogOut,
   PackagePlus,
@@ -96,6 +97,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
+      {isCourier && (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild tooltip="Earnings History">
+            <Link href={`/earnings${roleQuery}`}>
+              <History />
+              My Earnings
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
     </>
   );
 
