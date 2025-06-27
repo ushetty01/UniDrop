@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { deliveries, userProfile } from "@/lib/data";
@@ -13,7 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MapPin, QrCode, Share2, Send, Wallet, CreditCard, Landmark, User } from "lucide-react";
+import { Star, MapPin, Share2, Send, Wallet, CreditCard, Landmark, User, CheckCircle, Camera } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const paymentIcons: Record<string, React.ReactNode> = {
     "Cash": <Wallet className="w-4 h-4 mr-2" />,
@@ -30,6 +32,35 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
   const isCourier = role === 'courier';
 
   const [verificationCode, setVerificationCode] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      if (isCourier && typeof navigator !== 'undefined' && navigator.mediaDevices) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setHasCameraPermission(true);
+
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+        }
+      }
+    };
+
+    getCameraPermission();
+
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+        }
+    }
+  }, [isCourier]);
   
   const delivery = deliveries.find(d => d.id === 'del-1'); // Mocking with first delivery with courier
 
@@ -145,32 +176,58 @@ export default function DeliveryStatusPage({ params }: { params: { id: string } 
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">{isCourier ? 'Enter Verification Code' : 'Verification Code'}</CardTitle>
-              <CardDescription>{isCourier ? 'Enter the code from the recipient to complete the delivery.' : 'Share this with the recipient for a secure handoff.'}</CardDescription>
+              <CardTitle className="font-headline">Verification</CardTitle>
+              <CardDescription>{isCourier ? 'Complete the delivery using one of the methods below.' : 'Share the code or QR with the courier for verification.'}</CardDescription>
             </CardHeader>
-            <CardContent className="text-center space-y-4">
-                {isCourier ? (
-                  <Input 
-                    type="text" 
-                    placeholder="123456" 
-                    maxLength={6}
-                    className="text-4xl font-bold tracking-widest text-center h-auto py-2"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                  />
-                ) : (
-                  <>
-                    <div className="flex justify-center">
+             <CardContent>
+                <Tabs defaultValue="code" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="code">Code</TabsTrigger>
+                  <TabsTrigger value="qr">Scan QR</TabsTrigger>
+                </TabsList>
+                <TabsContent value="code" className="mt-4">
+                  {isCourier ? (
+                    <Input 
+                      type="text" 
+                      placeholder="123456" 
+                      maxLength={6}
+                      className="text-4xl font-bold tracking-widest text-center h-auto py-2"
+                      value={verificationCode}
+                      onChange={(e) => setVerificationCode(e.target.value)}
+                    />
+                  ) : (
+                    <div className="text-center pt-4">
+                      <p className="text-4xl font-bold tracking-widest text-primary">123456</p>
+                    </div>
+                  )}
+                </TabsContent>
+                <TabsContent value="qr" className="mt-4">
+                  {isCourier ? (
+                    <div className="space-y-2">
+                        <video ref={videoRef} className="w-full aspect-square rounded-md bg-muted object-cover" autoPlay muted playsInline />
+                        {hasCameraPermission === false && (
+                            <Alert variant="destructive">
+                                <Camera className="h-4 w-4" />
+                                <AlertTitle>Camera Access Required</AlertTitle>
+                                <AlertDescription>
+                                    Please allow camera access to use this feature.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                         <p className="text-xs text-muted-foreground text-center">Note: QR scanning requires camera access.</p>
+                    </div>
+                  ) : (
+                    <div className="flex justify-center pt-4">
                       <Image src="https://placehold.co/150x150.png" alt="QR Code" width={150} height={150} className="rounded-md" data-ai-hint="qr code"/>
                     </div>
-                    <p className="text-4xl font-bold tracking-widest text-primary">123456</p>
-                  </>
-                )}
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
             <CardFooter>
                 {isCourier ? (
                   <Button className="w-full" onClick={handleVerificationSubmit}>
-                      <QrCode className="w-4 h-4 mr-2" /> Complete Delivery
+                      <CheckCircle className="w-4 h-4 mr-2" /> Complete Delivery
                   </Button>
                 ) : (
                   <Button variant="outline" className="w-full">
