@@ -1,5 +1,4 @@
 
-
 export const userProfile = {
     name: "Student Name",
     email: "student.name@manipal.edu",
@@ -55,12 +54,24 @@ export const vendors = [
     name: "Campus Store",
     courier: vendorCourier,
     avatar: "https://placehold.co/100x100.png",
+    menu: [
+      { id: 'item-1', name: 'Pen', price: 10 },
+      { id: 'item-2', name: '100pg Notebook', price: 70 },
+      { id: 'item-3', name: 'Calculator', price: 250 },
+      { id: 'item-4', name: 'Highlighter Set', price: 120 },
+    ]
   },
   {
     id: "vendor-2",
     name: "KC Food Court",
     courier: { ...vendorCourier, id: 'vendor-courier-2', name: 'KC Food Court Courier' },
     avatar: "https://placehold.co/100x100.png",
+    menu: [
+      { id: 'item-5', name: 'Aloo Paratha', price: 60 },
+      { id: 'item-6', name: 'Masala Dosa', price: 80 },
+      { id: 'item-7', name: 'Veg Biryani', price: 120 },
+      { id: 'item-8', name: 'Coke (250ml)', price: 30 },
+    ]
   }
 ];
 
@@ -140,24 +151,24 @@ export const deliveries = [
     },
     {
         id: "del-7",
-        item: "Stationery from Campus Store",
+        item: "1x Highlighter Set, 2x Pen",
         status: "In Transit",
         pickup: "Campus Store",
         dropoff: "Block 20, Room 101",
         courier: vendorCourier,
-        price: 150,
+        price: 170,
         paymentMethod: "Card",
         date: "2024-07-28",
         mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-8",
-        item: "Textbooks",
+        item: "2x 100pg Notebook",
         status: "Delivered",
         pickup: "Campus Store",
         dropoff: "Block 15, Room 210",
         courier: vendorCourier,
-        price: 800,
+        price: 170,
         paymentMethod: "UPI",
         date: "2024-07-27",
         mapImageUrl: "https://placehold.co/800x400.png",

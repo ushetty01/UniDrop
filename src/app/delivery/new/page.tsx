@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { MapPin, Wallet, CreditCard, Landmark, Map, Users, Building } from "lucide-react";
+import { MapPin, Wallet, CreditCard, Landmark, Map, Users, Building, Plus, Minus } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useDeliveries } from '@/context/delivery-context';
 import { useToast } from "@/hooks/use-toast";
@@ -36,23 +36,35 @@ export default function NewDeliveryPage() {
   const { addDelivery, addVendorDelivery } = useDeliveries();
   const { toast } = useToast();
 
+  // Location state
   const [pickup, setPickup] = useState('');
   const [dropoff, setDropoff] = useState('');
-  const [description, setDescription] = useState('');
-  const [packageSize, setPackageSize] = useState('');
-  const [price, setPrice] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Cash');
   const [editingLocation, setEditingLocation] = useState<'pickup' | 'dropoff' | null>(null);
 
+  // Delivery details state
   const [deliveryType, setDeliveryType] = useState('standard');
-  const [selectedVendor, setSelectedVendor] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [packageSize, setPackageSize] = useState('');
 
+  // Standard P2P delivery state
+  const [standardDeliveryDescription, setStandardDeliveryDescription] = useState('');
+  const [deliveryFee, setDeliveryFee] = useState('');
+  
+  // Vendor delivery state
+  const [selectedVendor, setSelectedVendor] = useState('');
+  const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
+  
+  // Shared / Calculated state
+  const [totalPrice, setTotalPrice] = useState('');
   const [mapImageUrl, setMapImageUrl] = useState("https://placehold.co/600x400.png");
   const [isMapLoading, setIsMapLoading] = useState(false);
 
   const role = searchParams.get('role');
   const dashboardLink = `/dashboard${role ? `?role=${role}` : ''}`;
+  
+  const selectedVendorData = vendors.find(v => v.id === selectedVendor);
 
+  // Effect to update map
   useEffect(() => {
     const finalPickup = deliveryType === 'vendor' ? vendors.find(v => v.id === selectedVendor)?.name : pickup;
     if (finalPickup && dropoff) {
@@ -69,7 +81,8 @@ export default function NewDeliveryPage() {
       return () => clearTimeout(handler);
     }
   }, [pickup, dropoff, deliveryType, selectedVendor]);
-
+  
+  // Effect to set pickup location from vendor
   useEffect(() => {
     if (deliveryType === 'vendor' && selectedVendor) {
       const vendorName = vendors.find(v => v.id === selectedVendor)?.name;
@@ -79,19 +92,73 @@ export default function NewDeliveryPage() {
     }
   }, [deliveryType, selectedVendor]);
 
-  const handleSubmit = () => {
-    const finalPickup = deliveryType === 'vendor' ? vendors.find(v => v.id === selectedVendor)?.name : pickup;
+  // Effect to calculate vendor order total
+  useEffect(() => {
+      if (deliveryType === 'vendor' && selectedVendorData) {
+          const vendorMenu = selectedVendorData.menu || [];
+          const itemTotal = Object.entries(selectedItems).reduce((acc, [itemId, quantity]) => {
+              const item = vendorMenu.find(i => i.id === itemId);
+              return acc + (item ? item.price * quantity : 0);
+          }, 0);
 
-    if (!finalPickup || !dropoff || !description || !price || !paymentMethod) {
+          const calculatedDeliveryFee = itemTotal > 0 ? 30 : 0; // Only add delivery fee if items are selected
+          setTotalPrice((itemTotal + calculatedDeliveryFee).toString());
+      }
+  }, [selectedItems, deliveryType, selectedVendorData]);
+
+  // Effect to reset state when delivery type changes
+  useEffect(() => {
+      setStandardDeliveryDescription('');
+      setDeliveryFee('');
+      setSelectedItems({});
+      setSelectedVendor('');
+      setTotalPrice('');
+      setPackageSize('');
+  }, [deliveryType]);
+
+
+  const handleQuantityChange = (itemId: string, change: number) => {
+      setSelectedItems(prev => {
+          const currentQuantity = prev[itemId] || 0;
+          const newQuantity = Math.max(0, currentQuantity + change);
+          if (newQuantity === 0) {
+              const newItems = {...prev};
+              delete newItems[itemId];
+              return newItems;
+          }
+          return {
+              ...prev,
+              [itemId]: newQuantity
+          };
+      });
+  };
+
+  const handleSubmit = () => {
+    const finalPickup = deliveryType === 'vendor' ? selectedVendorData?.name : pickup;
+    
+    let finalDescription = '';
+    if(deliveryType === 'vendor') {
+      const vendorMenu = selectedVendorData?.menu || [];
+      finalDescription = vendorMenu
+          .filter(item => selectedItems[item.id] > 0)
+          .map(item => `${selectedItems[item.id]}x ${item.name}`)
+          .join(', ');
+    } else {
+      finalDescription = standardDeliveryDescription;
+    }
+
+    const finalPrice = deliveryType === 'vendor' ? totalPrice : deliveryFee;
+
+    if (!finalPickup || !dropoff || !finalDescription || !finalPrice || !paymentMethod) {
       toast({ variant: "destructive", title: "Missing Information", description: "Please fill out all required fields." });
       return;
     }
 
     const deliveryData = {
-      item: description,
+      item: finalDescription,
       pickup: finalPickup,
       dropoff,
-      price: Number(price),
+      price: Number(finalPrice),
       paymentMethod,
       mapImageUrl,
     };
@@ -115,6 +182,9 @@ export default function NewDeliveryPage() {
     }
     setEditingLocation(null);
   };
+
+  const itemTotalForDisplay = deliveryType === 'vendor' && totalPrice ? (Number(totalPrice) > 0 ? Number(totalPrice) - 30 : 0) : 0;
+  const deliveryFeeForDisplay = deliveryType === 'vendor' && itemTotalForDisplay > 0 ? 30 : 0;
 
   return (
     <AppLayout>
@@ -146,61 +216,115 @@ export default function NewDeliveryPage() {
                 </RadioGroup>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pickup">{deliveryType === 'vendor' ? 'Vendor' : 'Pickup Location'}</Label>
-                  {deliveryType === 'vendor' ? (
-                    <Select onValueChange={setSelectedVendor} value={selectedVendor}>
-                      <SelectTrigger id="vendor-select">
-                        <SelectValue placeholder="Choose a vendor..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vendors.map(vendor => <SelectItem key={vendor.id} value={vendor.id}>{vendor.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-grow">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="pickup" placeholder="e.g., KC Food Court" className="pl-10" value={pickup} onChange={(e) => setPickup(e.target.value)} />
-                      </div>
-                      <Button variant="outline" size="icon" onClick={() => setEditingLocation('pickup')}><Map className="h-4 w-4" /><span className="sr-only">Select on map</span></Button>
+              {deliveryType === 'vendor' ? (
+                // VENDOR DELIVERY FORM
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="vendor-select">Vendor</Label>
+                        <Select onValueChange={setSelectedVendor} value={selectedVendor}>
+                            <SelectTrigger id="vendor-select"><SelectValue placeholder="Choose a vendor..." /></SelectTrigger>
+                            <SelectContent>{vendors.map(vendor => <SelectItem key={vendor.id} value={vendor.id}>{vendor.name}</SelectItem>)}</SelectContent>
+                        </Select>
                     </div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dropoff">Drop-off Location</Label>
-                  <div className="flex items-center gap-2">
-                    <div className="relative flex-grow">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input id="dropoff" placeholder="e.g., Block 5, Room 201" className="pl-10" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
+                     <div className="space-y-2">
+                        <Label htmlFor="dropoff">Drop-off Location</Label>
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-grow">
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input id="dropoff" placeholder="e.g., Block 5, Room 201" className="pl-10" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
+                            </div>
+                            <Button variant="outline" size="icon" onClick={() => setEditingLocation('dropoff')}><Map className="h-4 w-4" /><span className="sr-only">Select on map</span></Button>
+                        </div>
                     </div>
-                    <Button variant="outline" size="icon" onClick={() => setEditingLocation('dropoff')}><Map className="h-4 w-4" /><span className="sr-only">Select on map</span></Button>
-                  </div>
+                    <div className="space-y-2">
+                        <Label>Select Items</Label>
+                        <Card className="max-h-64 overflow-y-auto">
+                            <CardContent className="p-4 space-y-3">
+                            {selectedVendorData?.menu ? (
+                                selectedVendorData.menu.map(item => (
+                                <div key={item.id} className="flex justify-between items-center">
+                                    <div>
+                                    <p className="font-medium">{item.name}</p>
+                                    <p className="text-sm text-muted-foreground">₹{item.price}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, -1)} disabled={(selectedItems[item.id] || 0) === 0}>
+                                        <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="font-bold w-4 text-center">{selectedItems[item.id] || 0}</span>
+                                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(item.id, 1)}>
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                    </div>
+                                </div>
+                                ))
+                            ) : (
+                                <p className="text-muted-foreground text-sm text-center py-4">
+                                {selectedVendor ? "This vendor has no items." : "Select a vendor to see their menu."}
+                                </p>
+                            )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="price">Total Cost</Label>
+                        <Input id="price" value={totalPrice} readOnly placeholder="0" className="font-bold" />
+                        {Number(totalPrice) > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                            Item Total: ₹{itemTotalForDisplay} + Delivery Fee: ₹{deliveryFeeForDisplay}
+                        </p>
+                        )}
+                    </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Item Description</Label>
-                <Textarea id="description" placeholder="e.g., 1x Aloo Paratha, 1x Coke" value={description} onChange={(e) => setDescription(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="package-size">Package Size</Label>
-                  <Select onValueChange={setPackageSize} value={packageSize}>
-                    <SelectTrigger id="package-size"><SelectValue placeholder="Select a size" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">Small (e.g., Food box)</SelectItem>
-                      <SelectItem value="medium">Medium (e.g., Book, clothing)</SelectItem>
-                      <SelectItem value="large">Large (e.g., Small appliance)</SelectItem>
-                    </SelectContent>
-                  </Select>
+              ) : (
+                // STANDARD P2P DELIVERY FORM
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="pickup">Pickup Location</Label>
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex-grow">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input id="pickup" placeholder="e.g., KC Food Court" className="pl-10" value={pickup} onChange={(e) => setPickup(e.target.value)} />
+                                </div>
+                                <Button variant="outline" size="icon" onClick={() => setEditingLocation('pickup')}><Map className="h-4 w-4" /><span className="sr-only">Select on map</span></Button>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="dropoff">Drop-off Location</Label>
+                            <div className="flex items-center gap-2">
+                                <div className="relative flex-grow">
+                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input id="dropoff" placeholder="e.g., Block 5, Room 201" className="pl-10" value={dropoff} onChange={(e) => setDropoff(e.target.value)} />
+                                </div>
+                                <Button variant="outline" size="icon" onClick={() => setEditingLocation('dropoff')}><Map className="h-4 w-4" /><span className="sr-only">Select on map</span></Button>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Item Description</Label>
+                        <Textarea id="description" placeholder="e.g., 1x Aloo Paratha, 1x Coke" value={standardDeliveryDescription} onChange={(e) => setStandardDeliveryDescription(e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                        <Label htmlFor="package-size">Package Size</Label>
+                        <Select onValueChange={setPackageSize} value={packageSize}>
+                            <SelectTrigger id="package-size"><SelectValue placeholder="Select a size" /></SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="small">Small (e.g., Food box)</SelectItem>
+                            <SelectItem value="medium">Medium (e.g., Book, clothing)</SelectItem>
+                            <SelectItem value="large">Large (e.g., Small appliance)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        </div>
+                        <div className="space-y-2">
+                        <Label htmlFor="price">Delivery Fee Offer</Label>
+                        <Input id="price" type="number" placeholder="e.g., 50" value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} />
+                        </div>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Delivery Fee</Label>
-                  <Input id="price" type="number" placeholder="e.g., 50" value={price} onChange={(e) => setPrice(e.target.value)} />
-                </div>
-              </div>
+              )}
+              
               <div className="space-y-2">
                 <Label>Payment Method</Label>
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-3 gap-4">
