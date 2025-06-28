@@ -34,6 +34,8 @@ export default function DeliveryStatusPage() {
   
   const role = searchParams.get('role') || 'customer';
   const isCourier = role === 'courier';
+  const isVendor = role === 'vendor';
+  const isServiceProvider = isCourier || isVendor;
 
   const [verificationCode, setVerificationCode] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -43,7 +45,7 @@ export default function DeliveryStatusPage() {
   const delivery = deliveries.find(d => d.id === id);
 
   const [messages, setMessages] = useState([
-    { id: 1, text: "Hey! I'm on my way to the pickup location now.", sender: 'courier' },
+    { id: 1, text: isVendor ? "Your order is being prepared and will be out for delivery soon." : "Hey! I'm on my way to the pickup location now.", sender: 'courier' },
     { id: 2, text: "Sounds good, thanks for the update!", sender: 'customer' },
   ]);
   const [newMessage, setNewMessage] = useState('');
@@ -57,7 +59,7 @@ export default function DeliveryStatusPage() {
 
   useEffect(() => {
     const getCameraPermission = async () => {
-      if (isCourier && typeof navigator !== 'undefined' && navigator.mediaDevices) {
+      if (isServiceProvider && typeof navigator !== 'undefined' && navigator.mediaDevices) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true });
           setHasCameraPermission(true);
@@ -80,10 +82,10 @@ export default function DeliveryStatusPage() {
             stream.getTracks().forEach(track => track.stop());
         }
     }
-  }, [isCourier]);
+  }, [isServiceProvider]);
 
   useEffect(() => {
-    if (delivery?.status === 'In Transit' && !isCourier) {
+    if (delivery?.status === 'In Transit' && !isServiceProvider) {
         const path = [
             { top: '15%', left: '10%' },
             { top: '25%', left: '30%' },
@@ -104,7 +106,7 @@ export default function DeliveryStatusPage() {
 
         return () => clearInterval(interval);
     }
-  }, [delivery, isCourier]);
+  }, [delivery, isServiceProvider]);
   
 
   if (!delivery) {
@@ -134,7 +136,7 @@ export default function DeliveryStatusPage() {
         title: "Delivery Completed!",
         description: "The verification code is correct.",
       });
-      router.push(`/dashboard?role=courier`);
+      router.push(`/dashboard?role=${role}`);
     } else {
       toast({
         variant: "destructive",
@@ -147,7 +149,7 @@ export default function DeliveryStatusPage() {
   const handleSendMessage = () => {
     if (newMessage.trim() === '') return;
 
-    const currentUserRole = isCourier ? 'courier' : 'customer';
+    const currentUserRole = isServiceProvider ? 'courier' : 'customer';
     
     setMessages(prevMessages => [
       ...prevMessages,
@@ -157,7 +159,7 @@ export default function DeliveryStatusPage() {
 
     // Simulate a reply after a delay
     setTimeout(() => {
-        const otherUserRole = isCourier ? 'customer' : 'courier';
+        const otherUserRole = isServiceProvider ? 'customer' : 'courier';
         setMessages(prevMessages => [
             ...prevMessages,
             { id: prevMessages.length + 1, text: "Okay, thanks!", sender: otherUserRole }
@@ -165,8 +167,8 @@ export default function DeliveryStatusPage() {
     }, 1200);
   };
 
-  const detailsPerson = isCourier ? userProfile : courier;
-  const currentUser = isCourier ? courier : userProfile;
+  const detailsPerson = isServiceProvider ? userProfile : courier;
+  const currentUser = isServiceProvider ? courier : userProfile;
 
   return (
     <AppLayout>
@@ -187,7 +189,7 @@ export default function DeliveryStatusPage() {
                       data-ai-hint="map route"
                       unoptimized
                     />
-                    {delivery.status === 'In Transit' && !isCourier && (
+                    {delivery.status === 'In Transit' && !isServiceProvider && (
                         <div
                             className="absolute transition-all duration-1000 ease-linear"
                             style={{ 
@@ -226,7 +228,7 @@ export default function DeliveryStatusPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <Card>
                   <CardHeader>
-                  <CardTitle className="font-headline">{isCourier ? 'Customer Details' : 'Courier Details'}</CardTitle>
+                  <CardTitle className="font-headline">{isServiceProvider ? 'Customer Details' : 'Courier Details'}</CardTitle>
                   </CardHeader>
                   <CardContent className="flex items-center gap-4">
                       <Avatar className="h-16 w-16">
@@ -236,7 +238,7 @@ export default function DeliveryStatusPage() {
                       <div>
                         <h3 className="font-semibold text-lg">{detailsPerson.name}</h3>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                              {isCourier ? (
+                              {isServiceProvider ? (
                                   <>
                                       <User className="w-4 h-4" />
                                       <span>Customer</span>
@@ -276,7 +278,7 @@ export default function DeliveryStatusPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-headline">Verification</CardTitle>
-              <CardDescription>{isCourier ? 'Complete the delivery using one of the methods below.' : 'Share the code or QR with the courier for verification.'}</CardDescription>
+              <CardDescription>{isServiceProvider ? 'Complete the delivery using one of the methods below.' : 'Share the code or QR with the courier for verification.'}</CardDescription>
             </CardHeader>
              <CardContent>
                 <Tabs defaultValue="code" className="w-full">
@@ -285,7 +287,7 @@ export default function DeliveryStatusPage() {
                   <TabsTrigger value="qr">Scan QR</TabsTrigger>
                 </TabsList>
                 <TabsContent value="code" className="mt-4">
-                  {isCourier ? (
+                  {isServiceProvider ? (
                     <Input 
                       type="text" 
                       placeholder="123456" 
@@ -301,7 +303,7 @@ export default function DeliveryStatusPage() {
                   )}
                 </TabsContent>
                 <TabsContent value="qr" className="mt-4">
-                  {isCourier ? (
+                  {isServiceProvider ? (
                     <div className="space-y-2">
                         <video ref={videoRef} className="w-full aspect-square rounded-md bg-muted object-cover" autoPlay muted playsInline />
                         {hasCameraPermission === false && (
@@ -324,7 +326,7 @@ export default function DeliveryStatusPage() {
               </Tabs>
             </CardContent>
             <CardFooter>
-                {isCourier ? (
+                {isServiceProvider ? (
                   <Button className="w-full" onClick={handleVerificationSubmit}>
                       <CheckCircle className="w-4 h-4 mr-2" /> Complete Delivery
                   </Button>
@@ -342,7 +344,7 @@ export default function DeliveryStatusPage() {
               </CardHeader>
               <CardContent ref={chatContainerRef} className="flex-grow overflow-y-auto space-y-4">
                 {messages.map((message) => {
-                  const isMyMessage = (isCourier && message.sender === 'courier') || (!isCourier && message.sender === 'customer');
+                  const isMyMessage = (isServiceProvider && message.sender === 'courier') || (!isServiceProvider && message.sender === 'customer');
                   
                   return (
                     <div key={message.id} className={`flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
