@@ -39,8 +39,21 @@ export default function DeliveryStatusPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [courierPosition, setCourierPosition] = useState({ top: '15%', left: '10%' });
-
+  
   const delivery = deliveries.find(d => d.id === id);
+
+  const [messages, setMessages] = useState([
+    { id: 1, text: "Hey! I'm on my way to the pickup location now.", sender: 'courier' },
+    { id: 2, text: "Sounds good, thanks for the update!", sender: 'customer' },
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -130,8 +143,30 @@ export default function DeliveryStatusPage() {
       });
     }
   };
+  
+  const handleSendMessage = () => {
+    if (newMessage.trim() === '') return;
+
+    const currentUserRole = isCourier ? 'courier' : 'customer';
+    
+    setMessages(prevMessages => [
+      ...prevMessages,
+      { id: prevMessages.length + 1, text: newMessage, sender: currentUserRole },
+    ]);
+    setNewMessage('');
+
+    // Simulate a reply after a delay
+    setTimeout(() => {
+        const otherUserRole = isCourier ? 'customer' : 'courier';
+        setMessages(prevMessages => [
+            ...prevMessages,
+            { id: prevMessages.length + 1, text: "Okay, thanks!", sender: otherUserRole }
+        ]);
+    }, 1200);
+  };
 
   const detailsPerson = isCourier ? userProfile : courier;
+  const currentUser = isCourier ? courier : userProfile;
 
   return (
     <AppLayout>
@@ -305,49 +340,46 @@ export default function DeliveryStatusPage() {
               <CardHeader>
                 <CardTitle className="font-headline">Chat</CardTitle>
               </CardHeader>
-              <CardContent className="flex-grow overflow-y-auto space-y-4">
-                {/* Message 1: from Courier */}
-                <div className={`flex items-end gap-2 ${isCourier ? 'justify-end' : ''}`}>
-                  {!isCourier && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} />
-                      <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <p className={`p-3 rounded-lg text-sm max-w-xs ${isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    Hey! I'm on my way to the pickup location now.
-                  </p>
-                  {isCourier && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} />
-                      <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-                
-                {/* Message 2: from Customer */}
-                <div className={`flex items-end gap-2 ${!isCourier ? 'justify-end' : ''}`}>
-                  {isCourier && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                      <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <p className={`p-3 rounded-lg text-sm max-w-xs ${!isCourier ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    Sounds good, thanks for the update!
-                  </p>
-                  {!isCourier && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
-                      <AvatarFallback>{userProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
+              <CardContent ref={chatContainerRef} className="flex-grow overflow-y-auto space-y-4">
+                {messages.map((message) => {
+                  const isMyMessage = (isCourier && message.sender === 'courier') || (!isCourier && message.sender === 'customer');
+                  
+                  return (
+                    <div key={message.id} className={`flex items-end gap-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                      {!isMyMessage && detailsPerson && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={detailsPerson.avatar} alt={detailsPerson.name} />
+                          <AvatarFallback>{detailsPerson.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      )}
+                      <p className={`p-3 rounded-lg text-sm max-w-xs ${isMyMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        {message.text}
+                      </p>
+                      {isMyMessage && currentUser && (
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                          <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  );
+                })}
               </CardContent>
               <CardFooter className="pt-4 border-t">
                 <div className="relative w-full">
-                  <Textarea placeholder="Type your message..." className="pr-12" />
-                  <Button size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8">
+                  <Textarea 
+                    placeholder="Type your message..." 
+                    className="pr-12"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                  <Button size="icon" className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8" onClick={handleSendMessage}>
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
