@@ -3,10 +3,29 @@ import { userProfile } from "@/lib/data";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Star, Package, Edit, User as UserIcon } from "lucide-react";
+import { Star, Package, Edit, User as UserIcon, Award, Trophy, Gem } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function ProfilePage() {
+  const totalTransactions = userProfile.deliveriesMade + userProfile.deliveriesReceived;
+  const rating = userProfile.rating;
+
+  let badge = { 
+    name: "Newcomer", 
+    icon: <Package className="w-4 h-4" />, 
+    color: "text-muted-foreground" 
+  };
+
+  if (totalTransactions >= 50 && rating >= 4.8) {
+      badge = { name: "Elite", icon: <Gem className="w-4 h-4" />, color: "text-violet-400" };
+  } else if (totalTransactions >= 30 && rating >= 4.7) {
+      badge = { name: "Pro", icon: <Trophy className="w-4 h-4" />, color: "text-amber-400" };
+  } else if (totalTransactions >= 10 && rating >= 4.5) {
+      badge = { name: "Reliable", icon: <Award className="w-4 h-4" />, color: "text-sky-400" };
+  } else if (totalTransactions > 0) {
+      badge = { name: "Rising Star", icon: <Star className="w-4 h-4" />, color: "text-yellow-400" };
+  }
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
@@ -26,9 +45,16 @@ export default function ProfilePage() {
                 <div>
                     <CardTitle className="font-headline text-2xl">{userProfile.name}</CardTitle>
                     <CardDescription>{userProfile.email}</CardDescription>
-                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span>{userProfile.rating} average rating</span>
+                    <div className="flex items-center gap-4 mt-2 text-sm">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                            <span>{userProfile.rating} avg. rating</span>
+                        </div>
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className={`flex items-center gap-1.5 font-medium ${badge.color}`}>
+                            {badge.icon}
+                            <span>{badge.name}</span>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -43,7 +69,7 @@ export default function ProfilePage() {
                         <p className="text-sm text-muted-foreground">Deliveries Received</p>
                     </div>
                      <div className="p-4 bg-muted rounded-lg">
-                        <p className="text-2xl font-bold">{userProfile.deliveriesMade + userProfile.deliveriesReceived}</p>
+                        <p className="text-2xl font-bold">{totalTransactions}</p>
                         <p className="text-sm text-muted-foreground">Total Transactions</p>
                     </div>
                 </div>
