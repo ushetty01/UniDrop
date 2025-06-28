@@ -1,4 +1,15 @@
 
+
+export const userProfile = {
+    name: "Student Name",
+    email: "student.name@manipal.edu",
+    campusId: "210912345",
+    avatar: "https://placehold.co/100x100.png",
+    deliveriesMade: 12,
+    deliveriesReceived: 25,
+    rating: 4.9,
+};
+
 export const couriers = [
   {
     id: "courier-1",
@@ -29,6 +40,30 @@ export const couriers = [
     estTime: "18 mins",
   },
 ];
+
+export const vendorCourier = {
+  id: "vendor-courier-1",
+  name: "Campus Store Courier",
+  rating: 5.0,
+  avatar: "https://placehold.co/100x100.png",
+  estTime: "N/A",
+};
+
+export const vendors = [
+  {
+    id: "vendor-1",
+    name: "Campus Store",
+    courier: vendorCourier,
+    avatar: "https://placehold.co/100x100.png",
+  },
+  {
+    id: "vendor-2",
+    name: "KC Food Court",
+    courier: { ...vendorCourier, id: 'vendor-courier-2', name: 'KC Food Court Courier' },
+    avatar: "https://placehold.co/100x100.png",
+  }
+];
+
 
 export const deliveries = [
     {
@@ -104,13 +139,3 @@ export const deliveries = [
         mapImageUrl: "https://placehold.co/800x400.png",
     },
 ];
-
-export const userProfile = {
-    name: "Student Name",
-    email: "student.name@manipal.edu",
-    campusId: "210912345",
-    avatar: "https://placehold.co/100x100.png",
-    deliveriesMade: 12,
-    deliveriesReceived: 25,
-    rating: 4.9,
-};

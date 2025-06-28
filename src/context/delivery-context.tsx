@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { deliveries as initialDeliveries, couriers, userProfile } from '@/lib/data';
+import { deliveries as initialDeliveries, couriers, userProfile, vendors } from '@/lib/data';
 
 // Define the types based on data.ts structure
 type Courier = {
@@ -29,6 +29,7 @@ export type Delivery = {
 type DeliveryContextType = {
   deliveries: Delivery[];
   addDelivery: (delivery: Omit<Delivery, 'id' | 'status' | 'courier' | 'date'>) => void;
+  addVendorDelivery: (deliveryData: Omit<Delivery, 'id' | 'status' | 'courier' | 'date'>, vendorId: string) => void;
   acceptJob: (deliveryId: string) => void;
   completeDelivery: (deliveryId: string) => void;
   cancelOrder: (deliveryId: string) => void;
@@ -46,6 +47,22 @@ export const DeliveryProvider = ({ children }: { children: ReactNode }) => {
       status: 'Pending Pickup',
       courier: null,
       date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+    };
+    setDeliveries(prevDeliveries => [newDelivery, ...prevDeliveries]);
+  };
+
+  const addVendorDelivery = (newDeliveryData: Omit<Delivery, 'id' | 'status' | 'courier' | 'date'>, vendorId: string) => {
+    const vendor = vendors.find(v => v.id === vendorId);
+    if (!vendor) {
+      console.error("Vendor not found");
+      return;
+    }
+    const newDelivery: Delivery = {
+      ...newDeliveryData,
+      id: `del-${Date.now()}`,
+      status: 'In Transit', // Automatically "In Transit"
+      courier: vendor.courier, // Automatically assigned courier
+      date: new Date().toISOString().split('T')[0],
     };
     setDeliveries(prevDeliveries => [newDelivery, ...prevDeliveries]);
   };
@@ -73,7 +90,7 @@ export const DeliveryProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <DeliveryContext.Provider value={{ deliveries, addDelivery, acceptJob, completeDelivery, cancelOrder }}>
+    <DeliveryContext.Provider value={{ deliveries, addDelivery, addVendorDelivery, acceptJob, completeDelivery, cancelOrder }}>
       {children}
     </DeliveryContext.Provider>
   );

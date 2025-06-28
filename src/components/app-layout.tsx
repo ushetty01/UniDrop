@@ -13,6 +13,7 @@ import {
   PanelLeft,
   Share2,
   User,
+  Building,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,12 +41,14 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "./logo";
+import { vendors } from "@/lib/data";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const role = searchParams.get('role');
   const isCourier = role === 'courier';
+  const isVendor = role === 'vendor';
   const roleQuery = role ? `?role=${role}` : '';
 
 
@@ -100,6 +103,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
+      ) : isVendor ? (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild tooltip="Order History">
+            <Link href={`/dashboard${roleQuery}`}>
+              <History />
+              Order History
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       ) : (
         <>
           <SidebarMenuItem>
@@ -123,6 +135,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     </>
   );
 
+  const userInfo = isCourier 
+    ? { name: 'Courier Name', email: 'courier@manipal.edu', avatarFallback: 'C' } 
+    : isVendor 
+    ? { name: vendors[0].name, email: 'vendor@manipal.edu', avatarFallback: 'V' }
+    : { name: 'Student Name', email: 'student@manipal.edu', avatarFallback: 'S' };
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -139,14 +157,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <div className="flex items-center gap-3 p-3">
              <Avatar>
-              <AvatarImage src="https://placehold.co/40x40.png" alt="@student" />
-              <AvatarFallback>S</AvatarFallback>
+              <AvatarImage src="https://placehold.co/40x40.png" alt={userInfo.name} />
+              <AvatarFallback>{userInfo.avatarFallback}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">{isCourier ? 'Courier Name' : 'Student Name'}</span>
-              <span className="text-xs text-muted-foreground">
-                student@manipal.edu
-              </span>
+              <span className="text-sm font-medium">{userInfo.name}</span>
+              <span className="text-xs text-muted-foreground">{userInfo.email}</span>
             </div>
           </div>
         </SidebarFooter>
@@ -189,8 +205,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
-                  <AvatarImage src="https://placehold.co/40x40.png" alt="@student" data-ai-hint="profile avatar" />
-                  <AvatarFallback>S</AvatarFallback>
+                  <AvatarImage src="https://placehold.co/40x40.png" alt={userInfo.name} data-ai-hint="profile avatar" />
+                  <AvatarFallback>{userInfo.avatarFallback}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
               </Button>

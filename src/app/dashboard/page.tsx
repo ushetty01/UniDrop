@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Activity, CheckCircle, PackagePlus, PackageSearch } from "lucide-react";
 import { useDeliveries } from "@/context/delivery-context";
 import { Badge } from "@/components/ui/badge";
+import { vendors } from "@/lib/data";
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
@@ -23,15 +24,33 @@ export default function DashboardPage() {
 
   const role = searchParams.get('role') || 'customer';
   const isCourier = role === 'courier';
+  const isVendor = role === 'vendor';
 
-  let activeList, completedList, activityList;
+  let activeList, completedList, activityList, title, description, activityTitle, activityDescription;
 
   if (isCourier) {
+    title = "Courier Dashboard";
+    description = "Welcome back! Find and manage your delivery jobs here.";
+    activityTitle = "Available Delivery Requests";
+    activityDescription = "Pick up a job from the list below.";
     activeList = deliveries.filter(d => d.status === 'In Transit' && d.courier);
     completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier);
     activityList = deliveries.filter(d => d.status === 'Pending Pickup');
-  } else {
-    // For customers, show all their deliveries
+  } else if (isVendor) {
+    // For this mock, we assume the first vendor is logged in.
+    const vendor = vendors[0]; 
+    title = `${vendor.name} Dashboard`;
+    description = "Welcome! Here's an overview of your store's deliveries.";
+    activityTitle = "Recent Orders";
+    activityDescription = "An overview of all orders from your store.";
+    activeList = deliveries.filter(d => d.courier?.id === vendor.courier.id && d.status !== 'Delivered');
+    completedList = deliveries.filter(d => d.courier?.id === vendor.courier.id && d.status === 'Delivered');
+    activityList = deliveries.filter(d => d.courier?.id?.startsWith('vendor-'));
+  } else { // Customer
+    title = "Dashboard";
+    description = "Welcome back! Here's an overview of your deliveries.";
+    activityTitle = "Recent Activity";
+    activityDescription = "An overview of your recent deliveries.";
     activeList = deliveries.filter(d => d.status !== 'Delivered');
     completedList = deliveries.filter(d => d.status === 'Delivered');
     activityList = deliveries;
@@ -42,17 +61,20 @@ export default function DashboardPage() {
     router.push(`/delivery/${deliveryId}?role=courier`);
   };
 
+  const handleViewDetails = (deliveryId: string) => {
+    const deliveryRole = isVendor ? 'vendor' : 'customer';
+    router.push(`/delivery/${deliveryId}?role=${deliveryRole}`);
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headline text-3xl font-semibold">{isCourier ? "Courier Dashboard" : "Dashboard"}</h1>
-          <p className="text-muted-foreground">
-            {isCourier ? "Welcome back! Find and manage your delivery jobs here." : "Welcome back! Here's an overview of your deliveries."}
-          </p>
+          <h1 className="font-headline text-3xl font-semibold">{title}</h1>
+          <p className="text-muted-foreground">{description}</p>
         </div>
 
-        <div className={`grid gap-4 md:grid-cols-2 ${isCourier ? '' : 'lg:grid-cols-3'}`}>
+        <div className={`grid gap-4 md:grid-cols-2 ${isCourier || isVendor ? '' : 'lg:grid-cols-3'}`}>
           <Card className="flex flex-col">
              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -81,7 +103,7 @@ export default function DashboardPage() {
               </p>
             </CardContent>
           </Card>
-           {!isCourier && (
+           {!isCourier && !isVendor && (
             <Card className="col-span-full lg:col-span-1 bg-primary text-primary-foreground flex flex-col justify-center">
               <CardContent className="pt-6">
                   <Link href="/delivery/new?role=customer">
@@ -97,16 +119,18 @@ export default function DashboardPage() {
 
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">{isCourier ? "Available Delivery Requests" : "Recent Activity"}</CardTitle>
-                <CardDescription>{isCourier ? "Pick up a job from the list below." : "An overview of your recent deliveries."}</CardDescription>
+                <CardTitle className="font-headline">{activityTitle}</CardTitle>
+                <CardDescription>{activityDescription}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
                     {activityList.map((delivery) => (
                         <div key={delivery.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
-                            <div className="flex-grow">
+                            <div className="flex-grow cursor-pointer" onClick={() => handleViewDetails(delivery.id)}>
                                 <p className="font-medium">{delivery.item}</p>
-                                <p className="text-sm text-muted-foreground">{isCourier ? `From: ${delivery.pickup} | To: ${delivery.dropoff}` : `To: ${delivery.dropoff}`}</p>
+                                <p className="text-sm text-muted-foreground">
+                                    {isCourier ? `From: ${delivery.pickup} | To: ${delivery.dropoff}` : `To: ${delivery.dropoff}`}
+                                </p>
                             </div>
                             <div className="flex items-center gap-4">
                                 {isCourier ? (
