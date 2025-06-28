@@ -27,43 +27,33 @@ import {
 import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
-  fullName: z.string().min(1, { message: "Full name is required." }),
-  email: z
-    .string()
-    .email({ message: "Please enter a valid email." })
-    .refine(
-      (email) => email.endsWith("@manipal.edu"),
-      "Please use your @manipal.edu college email."
-    ),
-  campusId: z.string().min(1, { message: "Campus ID is required." }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  password: z.string().min(1, { message: "Password is required." }),
 });
 
-export default function SignupForm() {
+export default function VendorLoginForm() {
   const router = useRouter();
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
       email: "",
-      campusId: "",
       password: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    router.push("/");
+    // In a real app, you'd authenticate the vendor and get their specific ID.
+    // For this mock, we'll just redirect to the vendor dashboard.
+    router.push("/dashboard?role=vendor");
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-headline text-2xl">Create an Account</CardTitle>
+        <CardTitle className="font-headline text-2xl">Vendor Login</CardTitle>
         <CardDescription>
-          Join the campus delivery network.
+          Enter your credentials to access your store's dashboard.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -71,43 +61,14 @@ export default function SignupForm() {
           <CardContent className="space-y-4">
             <FormField
               control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>College Email</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="@manipal.edu"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="campusId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Campus ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., 2109XXXXX"
+                      placeholder="vendor@example.com"
                       {...field}
                     />
                   </FormControl>
@@ -124,22 +85,22 @@ export default function SignupForm() {
                   <FormControl>
                     <Input type="password" placeholder="••••••••" {...field} />
                   </FormControl>
-                   <FormMessage />
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full">
-              Create Account
+              Login
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+             <p className="text-center text-sm text-muted-foreground">
+              Not a vendor?{" "}
               <Link
-                href="/login"
+                href="/"
                 className="font-medium text-primary underline-offset-4 hover:underline"
               >
-                Login
+                Go back
               </Link>
             </p>
           </CardFooter>

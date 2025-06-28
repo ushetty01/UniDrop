@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -32,6 +33,8 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role') || 'customer';
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,7 +45,7 @@ export default function LoginForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    router.push("/role-selection");
+    router.push(`/dashboard?role=${role}`);
   }
 
   return (
