@@ -14,6 +14,7 @@ import {
   Share2,
   User,
   Building,
+  DollarSign,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -104,14 +105,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenuItem>
         </>
       ) : isVendor ? (
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="Order History">
-            <Link href={`/dashboard${roleQuery}`}>
-              <History />
-              Order History
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Order History">
+              <Link href={`/dashboard${roleQuery}`}>
+                <History />
+                Order History
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Store Revenue">
+              <Link href={`/earnings${roleQuery}`}>
+                <DollarSign />
+                Earnings
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </>
       ) : (
         <>
           <SidebarMenuItem>

@@ -43,9 +43,9 @@ export default function DashboardPage() {
     description = "Welcome! Here's an overview of your store's deliveries.";
     activityTitle = "Recent Orders";
     activityDescription = "An overview of all orders from your store.";
-    activeList = deliveries.filter(d => d.courier?.id === vendor.courier.id && d.status !== 'Delivered');
-    completedList = deliveries.filter(d => d.courier?.id === vendor.courier.id && d.status === 'Delivered');
-    activityList = deliveries.filter(d => d.courier?.id?.startsWith('vendor-'));
+    activeList = deliveries.filter(d => d.status !== 'Delivered' && d.courier?.id === vendor.courier.id);
+    completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier?.id === vendor.courier.id);
+    activityList = deliveries.filter(d => d.courier?.id === vendor.courier.id);
   } else { // Customer
     title = "Dashboard";
     description = "Welcome back! Here's an overview of your deliveries.";
