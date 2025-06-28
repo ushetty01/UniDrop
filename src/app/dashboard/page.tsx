@@ -40,7 +40,7 @@ export default function DashboardPage() {
   } else if (isVendor) {
     const vendor = vendors[0]; 
     title = `${vendor.name} Dashboard`;
-    description = "Welcome! Here's an overview of your store's deliveries.";
+    description = "Welcome! Here's a quick overview of your store's current activity.";
     activeList = deliveries.filter(d => d.status !== 'Delivered' && d.courier?.id === vendor.courier.id);
     completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier?.id === vendor.courier.id);
   } else { // Customer
@@ -140,26 +140,15 @@ export default function DashboardPage() {
         </div>
 
         {isVendor ? (
-          <>
-            <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline">Active Orders</CardTitle>
-                  <CardDescription>Orders that are currently being prepared or are in transit.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {renderOrderList(activeList)}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                  <CardTitle className="font-headline">Completed Orders</CardTitle>
-                  <CardDescription>A history of all fulfilled orders.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {renderOrderList(completedList, true)}
-              </CardContent>
-            </Card>
-          </>
+          <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Active Orders</CardTitle>
+                <CardDescription>Orders that are currently being prepared or are in transit.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {renderOrderList(activeList)}
+            </CardContent>
+          </Card>
         ) : (
           <Card>
               <CardHeader>

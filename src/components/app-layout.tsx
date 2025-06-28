@@ -100,6 +100,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Order History">
+              <Link href={`/order-history${roleQuery}`}><History />Order History</Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Earnings">
               <Link href={`/earnings${roleQuery}`}><DollarSign />Earnings</Link>
             </SidebarMenuButton>
