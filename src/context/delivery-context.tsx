@@ -30,6 +30,7 @@ type DeliveryContextType = {
   addDelivery: (delivery: Omit<Delivery, 'id' | 'status' | 'courier' | 'date'>) => void;
   acceptJob: (deliveryId: string) => void;
   completeDelivery: (deliveryId: string) => void;
+  cancelOrder: (deliveryId: string) => void;
 };
 
 const DeliveryContext = createContext<DeliveryContextType | undefined>(undefined);
@@ -62,10 +63,16 @@ export const DeliveryProvider = ({ children }: { children: ReactNode }) => {
         d.id === deliveryId ? { ...d, status: 'Delivered' } : d
       )
     );
-  }
+  };
+
+  const cancelOrder = (deliveryId: string) => {
+    setDeliveries(prevDeliveries =>
+      prevDeliveries.filter(d => d.id !== deliveryId)
+    );
+  };
 
   return (
-    <DeliveryContext.Provider value={{ deliveries, addDelivery, acceptJob, completeDelivery }}>
+    <DeliveryContext.Provider value={{ deliveries, addDelivery, acceptJob, completeDelivery, cancelOrder }}>
       {children}
     </DeliveryContext.Provider>
   );

@@ -8,6 +8,7 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  Package,
   PackagePlus,
   PanelLeft,
   Share2,
@@ -100,14 +101,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </SidebarMenuItem>
         </>
       ) : (
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild tooltip="New Delivery">
-            <Link href={`/delivery/new${roleQuery}`}>
-              <PackagePlus />
-              New Delivery
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        <>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="My Orders">
+              <Link href={`/my-orders${roleQuery}`}>
+                <Package />
+                My Orders
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="New Delivery">
+              <Link href={`/delivery/new${roleQuery}`}>
+                <PackagePlus />
+                New Delivery
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </>
       )}
     </>
   );
