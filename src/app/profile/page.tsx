@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 export default function ProfilePage() {
   const totalTransactions = userProfile.deliveriesMade + userProfile.deliveriesReceived;
   const rating = userProfile.rating;
+  const deliveriesMade = userProfile.deliveriesMade;
 
   let badge = { 
     name: "Newcomer", 
@@ -16,13 +17,13 @@ export default function ProfilePage() {
     color: "text-muted-foreground" 
   };
 
-  if (totalTransactions >= 50 && rating >= 4.8) {
+  if (deliveriesMade >= 50 && rating >= 4.8) {
       badge = { name: "Elite", icon: <Gem className="w-4 h-4" />, color: "text-violet-400" };
-  } else if (totalTransactions >= 30 && rating >= 4.7) {
+  } else if (deliveriesMade >= 30 && rating >= 4.7) {
       badge = { name: "Pro", icon: <Trophy className="w-4 h-4" />, color: "text-amber-400" };
-  } else if (totalTransactions >= 10 && rating >= 4.5) {
+  } else if (deliveriesMade >= 10 && rating >= 4.5) {
       badge = { name: "Reliable", icon: <Award className="w-4 h-4" />, color: "text-sky-400" };
-  } else if (totalTransactions > 0) {
+  } else if (deliveriesMade > 0) {
       badge = { name: "Rising Star", icon: <Star className="w-4 h-4" />, color: "text-yellow-400" };
   }
 
