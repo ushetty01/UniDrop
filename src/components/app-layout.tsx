@@ -95,12 +95,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       ) : isVendor ? (
         <>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Order History">
-              <Link href={`/dashboard${roleQuery}`}><History />Order History</Link>
+            <SidebarMenuButton asChild tooltip="Dashboard">
+              <Link href={`/dashboard${roleQuery}`}><LayoutDashboard />Dashboard</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Store Revenue">
+            <SidebarMenuButton asChild tooltip="Earnings">
               <Link href={`/earnings${roleQuery}`}><DollarSign />Earnings</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
