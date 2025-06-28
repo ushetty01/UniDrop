@@ -23,6 +23,7 @@ export type Delivery = {
   price: number;
   paymentMethod: string;
   date: string;
+  mapImageUrl?: string;
 };
 
 type DeliveryContextType = {

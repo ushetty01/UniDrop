@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { Star, MapPin, Share2, Send, Wallet, CreditCard, Landmark, User, CheckCircle, Camera } from "lucide-react";
+import { Star, MapPin, Share2, Send, Wallet, CreditCard, Landmark, User, CheckCircle, Camera, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -38,6 +38,9 @@ export default function DeliveryStatusPage() {
   const [verificationCode, setVerificationCode] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [courierPosition, setCourierPosition] = useState({ top: '15%', left: '10%' });
+
+  const delivery = deliveries.find(d => d.id === id);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -65,8 +68,31 @@ export default function DeliveryStatusPage() {
         }
     }
   }, [isCourier]);
+
+  useEffect(() => {
+    if (delivery?.status === 'In Transit' && !isCourier) {
+        const path = [
+            { top: '15%', left: '10%' },
+            { top: '25%', left: '30%' },
+            { top: '40%', left: '50%' },
+            { top: '55%', left: '70%' },
+            { top: '70%', left: '85%' },
+        ];
+        let step = 0;
+
+        const interval = setInterval(() => {
+            step++;
+            if (step < path.length) {
+                setCourierPosition(path[step]);
+            } else {
+                clearInterval(interval);
+            }
+        }, 3000); // Update every 3 seconds
+
+        return () => clearInterval(interval);
+    }
+  }, [delivery, isCourier]);
   
-  const delivery = deliveries.find(d => d.id === id);
 
   if (!delivery) {
     return (
@@ -117,8 +143,31 @@ export default function DeliveryStatusPage() {
                 <CardDescription>Tracking delivery from {delivery.pickup} to {delivery.dropoff}</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="relative h-64 w-full rounded-md overflow-hidden">
-                    <Image src="https://placehold.co/800x400.png" alt="Map view" fill style={{objectFit: 'cover'}} data-ai-hint="map route" />
+                <div className="relative h-64 w-full rounded-md overflow-hidden bg-muted">
+                    <Image 
+                      src={delivery.mapImageUrl || "https://placehold.co/800x400.png"} 
+                      alt="Map view" 
+                      fill 
+                      style={{objectFit: 'cover'}} 
+                      data-ai-hint="map route"
+                      unoptimized
+                    />
+                    {delivery.status === 'In Transit' && !isCourier && (
+                        <div
+                            className="absolute transition-all duration-1000 ease-linear"
+                            style={{ 
+                                top: courierPosition.top, 
+                                left: courierPosition.left,
+                                transform: 'translate(-50%, -50%)'
+                            }}
+                        >
+                            <div className="relative">
+                                <Truck className="w-8 h-8 text-primary-foreground bg-primary p-1 rounded-full shadow-lg" />
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-primary animate-ping"></div>
+                                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-primary"></div>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm">

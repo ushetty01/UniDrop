@@ -1,3 +1,4 @@
+
 export const couriers = [
   {
     id: "courier-1",
@@ -40,6 +41,7 @@ export const deliveries = [
         price: 50,
         paymentMethod: "UPI",
         date: "2024-07-28",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-2",
@@ -51,6 +53,7 @@ export const deliveries = [
         price: 25,
         paymentMethod: "Cash",
         date: "2024-07-28",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-3",
@@ -62,6 +65,7 @@ export const deliveries = [
         price: 30,
         paymentMethod: "Card",
         date: "2024-07-27",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-4",
@@ -73,6 +77,7 @@ export const deliveries = [
         price: 40,
         paymentMethod: "UPI",
         date: "2024-07-27",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-5",
@@ -84,6 +89,7 @@ export const deliveries = [
         price: 35,
         paymentMethod: "Cash",
         date: "2024-07-26",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
     {
         id: "del-6",
@@ -95,6 +101,7 @@ export const deliveries = [
         price: 20,
         paymentMethod: "Cash",
         date: "2024-07-28",
+        mapImageUrl: "https://placehold.co/800x400.png",
     },
 ];
 

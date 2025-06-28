@@ -93,6 +93,7 @@ export default function NewDeliveryPage() {
         dropoff,
         price: Number(price),
         paymentMethod,
+        mapImageUrl,
     });
     
     toast({
