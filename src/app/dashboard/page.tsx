@@ -16,6 +16,7 @@ import { Activity, CheckCircle, PackagePlus, PackageSearch } from "lucide-react"
 import { useDeliveries } from "@/context/delivery-context";
 import { Badge } from "@/components/ui/badge";
 import { vendors } from "@/lib/data";
+import type { Delivery } from "@/context/delivery-context";
 
 export default function DashboardPage() {
   const searchParams = useSearchParams();
@@ -26,26 +27,22 @@ export default function DashboardPage() {
   const isCourier = role === 'courier';
   const isVendor = role === 'vendor';
 
-  let activeList, completedList, activityList, title, description, activityTitle, activityDescription;
+  let activeList: Delivery[] = [], completedList: Delivery[] = [], activityList: Delivery[] = [], title, description, activityTitle, activityDescription;
 
   if (isCourier) {
     title = "Courier Dashboard";
     description = "Welcome back! Find and manage your delivery jobs here.";
     activityTitle = "Available Delivery Requests";
     activityDescription = "Pick up a job from the list below.";
-    activeList = deliveries.filter(d => d.status === 'In Transit' && d.courier);
-    completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier);
+    activeList = deliveries.filter(d => d.status === 'In Transit' && d.courier?.id === 'courier-user');
+    completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier?.id === 'courier-user');
     activityList = deliveries.filter(d => d.status === 'Pending Pickup');
   } else if (isVendor) {
-    // For this mock, we assume the first vendor is logged in.
     const vendor = vendors[0]; 
     title = `${vendor.name} Dashboard`;
     description = "Welcome! Here's an overview of your store's deliveries.";
-    activityTitle = "Recent Orders";
-    activityDescription = "An overview of all orders from your store.";
     activeList = deliveries.filter(d => d.status !== 'Delivered' && d.courier?.id === vendor.courier.id);
     completedList = deliveries.filter(d => d.status === 'Delivered' && d.courier?.id === vendor.courier.id);
-    activityList = deliveries.filter(d => d.courier?.id === vendor.courier.id);
   } else { // Customer
     title = "Dashboard";
     description = "Welcome back! Here's an overview of your deliveries.";
@@ -62,9 +59,34 @@ export default function DashboardPage() {
   };
 
   const handleViewDetails = (deliveryId: string) => {
-    const deliveryRole = isVendor ? 'vendor' : 'customer';
+    const deliveryRole = isCourier ? 'courier' : isVendor ? 'vendor' : 'customer';
     router.push(`/delivery/${deliveryId}?role=${deliveryRole}`);
   };
+  
+  const renderOrderList = (list: Delivery[], isCompletedSection = false) => {
+    if (list.length === 0) {
+      return (
+        <div className="text-center text-muted-foreground py-8">
+          <PackageSearch className="mx-auto h-12 w-12" />
+          <p className="mt-4">{isCompletedSection ? "No completed orders yet." : "No active orders right now."}</p>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-4">
+        {list.map((delivery) => (
+          <div key={delivery.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => handleViewDetails(delivery.id)}>
+            <div className="flex-grow">
+              <p className="font-medium">{delivery.item}</p>
+              <p className="text-sm text-muted-foreground">To: {delivery.dropoff}</p>
+            </div>
+            <Badge variant={delivery.status === 'Delivered' ? 'secondary' : 'default'} className={delivery.status === 'In Transit' ? 'bg-amber-500' : ''}>{delivery.status}</Badge>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
 
   return (
     <AppLayout>
@@ -78,7 +100,7 @@ export default function DashboardPage() {
           <Card className="flex flex-col">
              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {isCourier ? 'Assigned Jobs' : 'Active Deliveries'}
+                {isCourier ? 'Assigned Jobs' : isVendor ? 'Active Orders' : 'Active Deliveries'}
               </CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -92,7 +114,7 @@ export default function DashboardPage() {
            <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Completed {isCourier ? 'Jobs' : 'Deliveries'}
+                Completed {isCourier ? 'Jobs' : isVendor ? 'Orders' : 'Deliveries'}
               </CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -117,44 +139,67 @@ export default function DashboardPage() {
            )}
         </div>
 
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">{activityTitle}</CardTitle>
-                <CardDescription>{activityDescription}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="space-y-4">
-                    {activityList.map((delivery) => (
-                        <div key={delivery.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
-                            <div className="flex-grow cursor-pointer" onClick={() => handleViewDetails(delivery.id)}>
-                                <p className="font-medium">{delivery.item}</p>
-                                <p className="text-sm text-muted-foreground">
-                                    {isCourier ? `From: ${delivery.pickup} | To: ${delivery.dropoff}` : `To: ${delivery.dropoff}`}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                {isCourier ? (
-                                    <>
-                                        <div className="font-semibold text-primary">₹{delivery.price}</div>
-                                        <Button size="sm" onClick={() => handleAcceptJob(delivery.id)}>
-                                            Accept Job
-                                        </Button>
-                                    </>
-                                ) : (
-                                    <Badge variant={delivery.status === 'Delivered' ? 'secondary' : 'default'} className={delivery.status === 'In Transit' ? 'bg-amber-500' : ''}>{delivery.status}</Badge>
-                                )}
-                             </div>
-                        </div>
-                    ))}
-                    {(activityList.length === 0) && (
-                        <div className="text-center text-muted-foreground py-8">
-                            <PackageSearch className="mx-auto h-12 w-12" />
-                            <p className="mt-4">{isCourier ? "No available jobs at the moment. Check back later!" : "No deliveries yet. Create one to get started!"}</p>
-                        </div>
-                    )}
-                </div>
-            </CardContent>
-        </Card>
+        {isVendor ? (
+          <>
+            <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline">Active Orders</CardTitle>
+                  <CardDescription>Orders that are currently being prepared or are in transit.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderOrderList(activeList)}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline">Completed Orders</CardTitle>
+                  <CardDescription>A history of all fulfilled orders.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderOrderList(completedList, true)}
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card>
+              <CardHeader>
+                  <CardTitle className="font-headline">{activityTitle}</CardTitle>
+                  <CardDescription>{activityDescription}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                  <div className="space-y-4">
+                      {activityList.map((delivery) => (
+                          <div key={delivery.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50">
+                              <div className="flex-grow cursor-pointer" onClick={() => handleViewDetails(delivery.id)}>
+                                  <p className="font-medium">{delivery.item}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                      {isCourier ? `From: ${delivery.pickup} | To: ${delivery.dropoff}` : `To: ${delivery.dropoff}`}
+                                  </p>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                  {isCourier ? (
+                                      <>
+                                          <div className="font-semibold text-primary">₹{delivery.price}</div>
+                                          <Button size="sm" onClick={() => handleAcceptJob(delivery.id)}>
+                                              Accept Job
+                                          </Button>
+                                      </>
+                                  ) : (
+                                      <Badge variant={delivery.status === 'Delivered' ? 'secondary' : 'default'} className={delivery.status === 'In Transit' ? 'bg-amber-500' : ''}>{delivery.status}</Badge>
+                                  )}
+                               </div>
+                          </div>
+                      ))}
+                      {(activityList.length === 0) && (
+                          <div className="text-center text-muted-foreground py-8">
+                              <PackageSearch className="mx-auto h-12 w-12" />
+                              <p className="mt-4">{isCourier ? "No available jobs at the moment. Check back later!" : "No deliveries yet. Create one to get started!"}</p>
+                          </div>
+                      )}
+                  </div>
+              </CardContent>
+          </Card>
+        )}
       </div>
     </AppLayout>
   );
