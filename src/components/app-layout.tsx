@@ -74,71 +74,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navLinks = (
     <>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          asChild
-          tooltip="Dashboard"
-        >
-          <Link href={`/dashboard${roleQuery}`}>
-            <LayoutDashboard />
-            Dashboard
-          </Link>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
       {isCourier ? (
         <>
           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Dashboard">
+              <Link href={`/dashboard${roleQuery}`}><LayoutDashboard />Dashboard</Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="My Jobs">
-              <Link href={`/my-jobs${roleQuery}`}>
-                <BriefcaseBusiness />
-                My Jobs
-              </Link>
+              <Link href={`/my-jobs${roleQuery}`}><BriefcaseBusiness />My Jobs</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Earnings History">
-              <Link href={`/earnings${roleQuery}`}>
-                <History />
-                My Earnings
-              </Link>
+              <Link href={`/earnings${roleQuery}`}><History />My Earnings</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
       ) : isVendor ? (
         <>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Order History">
-              <Link href={`/dashboard${roleQuery}`}>
-                <History />
-                Order History
-              </Link>
+            <SidebarMenuButton asChild tooltip="Orders Dashboard">
+              <Link href={`/dashboard${roleQuery}`}><LayoutDashboard />Orders</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="Store Revenue">
-              <Link href={`/earnings${roleQuery}`}>
-                <DollarSign />
-                Earnings
-              </Link>
+              <Link href={`/earnings${roleQuery}`}><DollarSign />Earnings</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
       ) : (
         <>
+           <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Dashboard">
+              <Link href={`/dashboard${roleQuery}`}><LayoutDashboard />Dashboard</Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="My Orders">
-              <Link href={`/my-orders${roleQuery}`}>
-                <Package />
-                My Orders
-              </Link>
+              <Link href={`/my-orders${roleQuery}`}><Package />My Orders</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip="New Delivery">
-              <Link href={`/delivery/new${roleQuery}`}>
-                <PackagePlus />
-                New Delivery
-              </Link>
+              <Link href={`/delivery/new${roleQuery}`}><PackagePlus />New Delivery</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
