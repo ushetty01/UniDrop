@@ -87,8 +87,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Job History">
-              <Link href={`/earnings${roleQuery}`}><History />Job History</Link>
+            <SidebarMenuButton asChild tooltip="Earnings">
+              <Link href={`/earnings${roleQuery}`}><DollarSign />Earnings</Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </>
